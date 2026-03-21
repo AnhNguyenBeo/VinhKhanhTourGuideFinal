@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="VinhKhanhTourGuide.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:VinhKhanhTourGuide"
+    xmlns:views="clr-namespace:VinhKhanhTourGuide.Views"
+    Shell.FlyoutBehavior="Disabled"
+    Title="VinhKhanhTourGuide">
+
+    <ShellContent
+        Title="Map POC"
+        ContentTemplate="{DataTemplate views:MapPage}"
+        Route="MapPage" />
+
+</Shell>
