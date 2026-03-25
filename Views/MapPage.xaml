@@ -1,24 +1,106 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
              x:Class="VinhKhanhTourGuide.Views.MapPage"
-             Title="Smart Map (POC)">
+             Title="Phố ẩm thực Vĩnh Khánh">
 
-    <VerticalStackLayout Spacing="20" Padding="20" VerticalOptions="Center">
-        <Label Text="Giả lập Geofencing (POC)"
-               FontSize="24"
-               FontAttributes="Bold"
-               HorizontalOptions="Center" />
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="4*" />
+            <RowDefinition Height="6*" />
+        </Grid.RowDefinitions>
 
-        <Label x:Name="StatusLabel"
-               Text="Trạng thái: Đang chờ vị trí..."
-               HorizontalOptions="Center" />
+        <maps:Map x:Name="VinhKhanhMap" 
+                  Grid.Row="0"
+                  IsShowingUser="True" 
+                  IsVisible="True" />
 
-        <Button Text="Đóng giả khách đi tới quán Ốc Oanh"
-                Clicked="OnTriggerOcOanhClicked"
-                BackgroundColor="#28a745"
-                TextColor="White"
-                CornerRadius="10"
-                HorizontalOptions="Center" />
-    </VerticalStackLayout>
+        <Border Grid.Row="0"
+                VerticalOptions="End" 
+                HorizontalOptions="Center" 
+                Margin="10" 
+                Padding="10,5" 
+                BackgroundColor="#CC000000" 
+                StrokeShape="RoundRectangle 20" 
+                ZIndex="10">
+            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                <Label x:Name="GeofenceStatusLabel" 
+                       Text="Radar đang quét Geofencing..." 
+                       TextColor="White" 
+                       FontSize="12" 
+                       FontAttributes="Bold" 
+                       VerticalOptions="Center"/>
+
+                <Button x:Name="StopAudioBtn" 
+                        Text="⏹" 
+                        TextColor="White" 
+                        BackgroundColor="Red" 
+                        CornerRadius="15" 
+                        WidthRequest="30" 
+                        HeightRequest="30" 
+                        Padding="0" 
+                        IsVisible="False" 
+                        Clicked="OnStopAudioClicked"/>
+            </HorizontalStackLayout>
+        </Border>
+
+        <CollectionView x:Name="EateryList" 
+                        Grid.Row="1"
+                        Margin="10" 
+                        SelectionMode="Single" 
+                        SelectionChanged="OnEaterySelected">
+            <CollectionView.Header>
+                <VerticalStackLayout Margin="0,0,0,10">
+                    <Label Text="Chào mừng bạn đến Vĩnh Khánh" FontSize="20" FontAttributes="Bold" TextColor="Purple" />
+                    <Label Text="Khám phá ẩm thực Quận 4" FontSize="14" TextColor="Gray"/>
+                </VerticalStackLayout>
+            </CollectionView.Header>
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="5,5,5,10">
+                        <Border StrokeShape="RoundRectangle 15" 
+                                StrokeThickness="1" 
+                                Stroke="LightGray" 
+                                BackgroundColor="White" 
+                                Padding="10">
+
+                            <Grid ColumnDefinitions="70, *, 40" 
+                                  ColumnSpacing="10" 
+                                  VerticalOptions="Center">
+
+                                <Border Grid.Column="0" 
+                                        StrokeShape="RoundRectangle 10" 
+                                        StrokeThickness="0" 
+                                        WidthRequest="70" 
+                                        HeightRequest="70" 
+                                        Padding="0">
+                                    <Image Source="{Binding ImageName}" 
+                                           Aspect="AspectFill" />
+                                </Border>
+
+                                <VerticalStackLayout Grid.Column="1" 
+                                                     VerticalOptions="Center">
+                                    <Label Text="{Binding Name}" 
+                                           FontSize="16" 
+                                           FontAttributes="Bold" 
+                                           TextColor="Black"/>
+                                    <Label Text="Khu ẩm thực Quận 4" 
+                                           FontSize="12" 
+                                           TextColor="Gray" />
+                                </VerticalStackLayout>
+
+                                <Image Grid.Column="2" 
+                                       Source="placeholder_ocoanh.png" 
+                                       WidthRequest="30" 
+                                       HeightRequest="30" 
+                                       VerticalOptions="Center" 
+                                       HorizontalOptions="Center"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
 </ContentPage>
