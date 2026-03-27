@@ -1,6 +1,9 @@
 ﻿using SQLite;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using VinhKhanhTourGuide.Models;
 
@@ -10,36 +13,64 @@ namespace VinhKhanhTourGuide.Data
     {
         private SQLiteAsyncConnection _database;
 
-        // Hàm khởi tạo DB
         private async Task Init()
         {
             if (_database is not null) return;
 
-            // ĐỔI THÀNH v4 để nạp cột Priority mới
-            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "VinhKhanhGuide_v4.db3");
+            // Đổi tên file thành v5 để nó tạo database mới tinh, không bị kẹt data cũ
+            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "VinhKhanhGuide_v5.db3");
             _database = new SQLiteAsyncConnection(dbPath);
 
             await _database.CreateTableAsync<Poi>();
             await _database.CreateTableAsync<TranslationCache>();
 
+            // =================================================================
+            // BƯỚC MỚI: ĐỒNG BỘ DỮ LIỆU TỪ SQL SERVER (API) XUỐNG SQLITE LOCAL
+            // =================================================================
+            try
+            {
+                // ========================================================
+                // BÙA CHÚ VƯỢT RÀO BẢO MẬT CỦA ANDROID (BỎ QUA LỖI SSL)
+                // ========================================================
+                var handler = new HttpClientHandler();
+                handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+                using var client = new HttpClient(handler);
+
+              
+                string apiUrl = "http://10.0.2.2:5099/api/pois";
+
+                var response = await client.GetStringAsync(apiUrl);
+                var cloudPois = JsonSerializer.Deserialize<List<Poi>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (cloudPois != null && cloudPois.Count > 0)
+                {
+                    await _database.DeleteAllAsync<Poi>();
+                    await _database.InsertAllAsync(cloudPois);
+                    System.Diagnostics.Debug.WriteLine("✅ TẢI DATA TỪ API THÀNH CÔNG!");
+                }
+            }
+            catch (Exception ex)
+            {
+                // IN LỖI ĐỎ CHÓT RA BẢNG OUTPUT ĐỂ BẮT BỆNH
+                System.Diagnostics.Debug.WriteLine($"❌ LỖI GỌI API: {ex.Message}");
+            }
+
+            // =================================================================
+            // BACKUP: NẾU VỪA CÀI APP, CHƯA CÓ DATA, VÀ CŨNG KHÔNG CÓ MẠNG ĐỂ GỌI API
+            // =================================================================
             var count = await _database.Table<Poi>().CountAsync();
             if (count == 0)
             {
                 var pois = new List<Poi>
                 {
-                    // Ốc Oanh nổi tiếng nhất -> Priority = 1
                     new Poi { Id = "OC-OANH", Name = "Ốc Oanh", ImageName = "placeholder_ocoanh.png", Priority = 1, Latitude = 10.7607099, Longitude = 106.7032565, GeofenceRadius = 30, Description_VN = "Ốc Oanh là biểu tượng ẩm thực của phố Vĩnh Khánh..." },
-                    // Ốc Vũ -> Priority = 2
-                    new Poi { Id = "OC-VU", Name = "Ốc Vũ", ImageName = "placeholder_ocvu.png", Priority = 2, Latitude = 10.7613801, Longitude = 106.7026756, GeofenceRadius = 30, Description_VN = "Nằm ngay đoạn đầu đường, Ốc Vũ nổi bật..." },
-                    new Poi { Id = "OC-NHI", Name = "Ốc Nhi", ImageName = "placeholder_ocnhi.png", Priority = 3, Latitude = 10.761266, Longitude = 106.7059247, GeofenceRadius = 30, Description_VN = "Ốc Nhi thu hút giới trẻ Sài Thành..." },
-                    new Poi { Id = "CHILLI", Name = "Chilli Quán", ImageName = "placeholder_chilli.png", Priority = 4, Latitude = 10.7606724, Longitude = 106.7035361, GeofenceRadius = 30, Description_VN = "Nếu bạn hơi ngán hải sản..." },
-                    new Poi { Id = "OC-THAO", Name = "Ốc Thảo", ImageName = "placeholder_octhao.png", Priority = 5, Latitude = 10.7616745, Longitude = 106.7023583, GeofenceRadius = 30, Description_VN = "Quán ốc lâu đời gắn liền với nhiều thế hệ..." },
+                    new Poi { Id = "OC-VU", Name = "Ốc Vũ", ImageName = "placeholder_ocvu.png", Priority = 2, Latitude = 10.7613801, Longitude = 106.7026756, GeofenceRadius = 30, Description_VN = "Nằm ngay đoạn đầu đường, Ốc Vũ nổi bật..." }
                 };
                 await _database.InsertAllAsync(pois);
             }
         }
-        // ---------- CÁC HÀM TRUY VẤN DỮ LIỆU ----------
 
+        // ---------- CÁC HÀM TRUY VẤN CŨ GIỮ NGUYÊN ----------
         public async Task<List<Poi>> GetPoisAsync()
         {
             await Init();
@@ -51,8 +82,6 @@ namespace VinhKhanhTourGuide.Data
             await Init();
             return await _database.Table<Poi>().Where(p => p.Id == id).FirstOrDefaultAsync();
         }
-
-        // ---------- CÁC HÀM XỬ LÝ CACHE (Dành cho Option B: Gọi AI) ----------
 
         public async Task<TranslationCache> GetCacheAsync(string poiId, string langCode)
         {

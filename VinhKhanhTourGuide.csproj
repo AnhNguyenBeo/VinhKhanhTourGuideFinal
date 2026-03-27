@@ -77,4 +77,11 @@
 		<MauiXaml Update="Views\*.xaml" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Remove="VinhKhanhTourGuide.Api\**\*.cs" />
+		<None Remove="VinhKhanhTourGuide.Api\**\*.*" />
+
+		<Compile Remove="VinhKhanhTourGuide.WebAdmin\**\*.cs" />
+		<None Remove="VinhKhanhTourGuide.WebAdmin\**\*.*" />
+	</ItemGroup>
 </Project>

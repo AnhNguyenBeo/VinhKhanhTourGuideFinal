@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Globalization;
-using System.Linq; // Bắt buộc phải có để dùng thuật toán sắp xếp độ ưu tiên OrderBy
+using System.Linq;
 using Microsoft.Maui.Controls.Maps;
 using Microsoft.Maui.Maps;
-using Microsoft.Maui.Graphics; // Bắt buộc phải có để dùng màu sắc (Colors.Red) vẽ vòng tròn
+using Microsoft.Maui.Graphics;
 using VinhKhanhTourGuide.Models;
 using VinhKhanhTourGuide.Services;
 using VinhKhanhTourGuide.Data;
@@ -21,7 +21,8 @@ namespace VinhKhanhTourGuide.Views
 
         private IDispatcherTimer _radarTimer;
         private List<Poi> _poiList = new();
-        private HashSet<string> _spokenPois = new();
+        private Dictionary<string, DateTime> _spokenPoisDict = new();
+        private readonly int _cooldownMinutes = 5;
         private bool _isSpeaking = false;
 
         public MapPage(TtsService ttsService, TranslationService translationService, AppDbContext dbContext)
@@ -42,7 +43,7 @@ namespace VinhKhanhTourGuide.Views
         {
             try
             {
-                // 1. Xin quyền GPS
+                // 1. Kiểm tra và xin quyền vị trí
                 var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
                 if (status != PermissionStatus.Granted)
                 {
@@ -51,64 +52,68 @@ namespace VinhKhanhTourGuide.Views
 
                 if (status != PermissionStatus.Granted)
                 {
-                    GeofenceStatusLabel.Text = "Lỗi GPS: Xin cấp quyền vị trí!";
+                    GeofenceStatusLabel.Text = "Lỗi: Vui lòng cấp quyền GPS!";
                     return;
                 }
 
-                GeofenceStatusLabel.Text = "Đang tải dữ liệu quán ăn...";
+                GeofenceStatusLabel.Text = "Đang kết nối API và tải dữ liệu...";
 
-                // 2. Lấy danh sách quán từ SQLite
+                // 2. Kích hoạt hàm Init() trong AppDbContext để kéo data từ SQL Server (API)
+                // Sau đó lấy danh sách quán từ SQLite local
                 _poiList = await _dbContext.GetPoisAsync();
 
-                // 3. CẮM CỜ LÊN BẢN ĐỒ NGẦM
+                // BƯỚC KIỂM TRA QUAN TRỌNG: Hiện thông báo số lượng quán tải được
+                await DisplayAlert("Hệ thống", $"Đã tải được {_poiList.Count} địa điểm từ máy chủ.", "OK");
+
+                if (_poiList == null || _poiList.Count == 0)
+                {
+                    GeofenceStatusLabel.Text = "Không có dữ liệu quán ăn.";
+                    return;
+                }
+
+                // 3. Hiển thị Pins (Cờ) lên bản đồ
+                VinhKhanhMap.Pins.Clear();
                 foreach (var poi in _poiList)
                 {
                     var pin = new Pin
                     {
                         Label = poi.Name,
-                        Address = "Khu Ẩm thực Quận 4",
+                        Address = "Khu Ẩm thực Vĩnh Khánh",
                         Type = PinType.Place,
                         Location = new Location(poi.Latitude, poi.Longitude)
                     };
                     VinhKhanhMap.Pins.Add(pin);
                 }
 
-                if (_poiList.Count > 0)
-                {
-                    var centerLocation = new Location(_poiList[0].Latitude, _poiList[0].Longitude);
-                    var mapSpan = MapSpan.FromCenterAndRadius(centerLocation, Distance.FromKilometers(0.8));
-                    VinhKhanhMap.MoveToRegion(mapSpan);
-                }
+                // 4. Di chuyển camera bản đồ đến quán đầu tiên
+                var centerLocation = new Location(_poiList[0].Latitude, _poiList[0].Longitude);
+                VinhKhanhMap.MoveToRegion(MapSpan.FromCenterAndRadius(centerLocation, Distance.FromKilometers(0.5)));
 
-                // 4. NẠP DỮ LIỆU VÀO DANH SÁCH TRÊN MÀN HÌNH
+                // 5. Đổ dữ liệu vào CollectionView dưới đáy màn hình
                 EateryList.ItemsSource = _poiList;
 
-                GeofenceStatusLabel.Text = $"Radar đang quét vị trí quanh {_poiList.Count} quán...";
+                GeofenceStatusLabel.Text = $"Radar đang quét quanh {_poiList.Count} quán...";
                 StartGeofenceRadar();
             }
             catch (Exception ex)
             {
-                GeofenceStatusLabel.Text = $"Lỗi giao diện: {ex.Message}";
+                await DisplayAlert("Lỗi", "Không thể hiển thị bản đồ: " + ex.Message, "Đóng");
             }
         }
 
-        // ---------- SỰ KIỆN KHI NGƯỜI DÙNG CHỌN MỘT QUÁN TRÊN DANH SÁCH ----------
         private async void OnEaterySelected(object sender, SelectionChangedEventArgs e)
         {
             if (e.CurrentSelection.Count == 0) return;
-
             var selectedPoi = e.CurrentSelection[0] as Poi;
             ((CollectionView)sender).SelectedItem = null;
 
             await Navigation.PushAsync(new EateryDetailPage(selectedPoi, _translationService, _ttsService, _dbContext));
         }
 
-        // ---------- CÁC HÀM GEOFENCING RADAR ----------
-        private Dictionary<string, DateTime> _spokenPoisDict = new();
-        private readonly int _cooldownMinutes = 5;
-
         private void StartGeofenceRadar()
         {
+            if (_radarTimer != null) return;
+
             _radarTimer = Dispatcher.CreateTimer();
             _radarTimer.Interval = TimeSpan.FromSeconds(5);
             _radarTimer.Tick += async (s, e) => await CheckGeofenceAsync();
@@ -121,103 +126,82 @@ namespace VinhKhanhTourGuide.Views
 
             try
             {
-                var request = new GeolocationRequest(GeolocationAccuracy.High, TimeSpan.FromSeconds(2));
-                var userLocation = await Geolocation.Default.GetLocationAsync(request);
+                // Lấy vị trí thực tế của người dùng
+                var userLocation = await Geolocation.Default.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.High, TimeSpan.FromSeconds(3)));
                 if (userLocation == null) return;
 
+                // Tìm các quán trong bán kính Geofence
                 var poisInRange = new List<(Poi poi, double distance)>();
                 foreach (var poi in _poiList)
                 {
-                    double distMeters = Location.CalculateDistance(userLocation, new Location(poi.Latitude, poi.Longitude), DistanceUnits.Kilometers) * 1000;
-                    if (distMeters <= poi.GeofenceRadius)
+                    double dist = Location.CalculateDistance(userLocation, new Location(poi.Latitude, poi.Longitude), DistanceUnits.Kilometers) * 1000;
+                    if (dist <= poi.GeofenceRadius)
                     {
-                        poisInRange.Add((poi, distMeters));
+                        poisInRange.Add((poi, dist));
                     }
                 }
 
                 if (poisInRange.Count > 0)
                 {
-                    // ƯU TIÊN: Xếp theo Priority (số nhỏ hơn ưu tiên trước), sau đó xét khoảng cách
+                    // Logic sắp xếp: Ưu tiên Priority (thấp nhất là 1), sau đó mới đến khoảng cách gần nhất
                     var targetPoi = poisInRange.OrderBy(p => p.poi.Priority).ThenBy(p => p.distance).First().poi;
 
-                    // COOLDOWN (Chống spam)
-                    if (_spokenPoisDict.TryGetValue(targetPoi.Id, out DateTime lastSpokenTime))
+                    // Kiểm tra Cooldown (Chống đọc lặp lại quá nhanh)
+                    if (_spokenPoisDict.TryGetValue(targetPoi.Id, out DateTime lastTime))
                     {
-                        if ((DateTime.Now - lastSpokenTime).TotalMinutes < _cooldownMinutes)
-                        {
-                            return;
-                        }
+                        if ((DateTime.Now - lastTime).TotalMinutes < _cooldownMinutes) return;
                     }
 
-                    // BẮT ĐẦU ĐỌC
                     _isSpeaking = true;
                     _spokenPoisDict[targetPoi.Id] = DateTime.Now;
 
-                    // HIỆN NÚT STOP & VẼ VÒNG TRÒN ĐỎ HIGHLIGHT QUÁN
+                    // Cập nhật giao diện (Nút Stop và Vòng tròn highlight)
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
                         StopAudioBtn.IsVisible = true;
-
-                        // Xóa các vòng highlight cũ
                         VinhKhanhMap.MapElements.Clear();
-
-                        // Vẽ vòng tròn highlight mới màu đỏ mờ đè lên quán
-                        var highlightCircle = new Circle
+                        VinhKhanhMap.MapElements.Add(new Circle
                         {
                             Center = new Location(targetPoi.Latitude, targetPoi.Longitude),
                             Radius = new Distance(targetPoi.GeofenceRadius),
                             StrokeColor = Colors.Red,
-                            StrokeWidth = 4,
-                            FillColor = Color.FromArgb("#44FF0000") // Đỏ trong suốt
-                        };
-                        VinhKhanhMap.MapElements.Add(highlightCircle);
+                            StrokeWidth = 5,
+                            FillColor = Color.FromArgb("#44FF0000")
+                        });
+                        GeofenceStatusLabel.Text = $"📍 Đang thuyết minh: {targetPoi.Name}...";
                     });
 
-                    string targetLang = CultureInfo.CurrentUICulture.Name;
+                    // Xử lý ngôn ngữ và TTS
+                    string lang = CultureInfo.CurrentUICulture.Name;
+                    var cache = await _dbContext.GetCacheAsync(targetPoi.Id, lang);
+                    string speechText = cache?.TranslatedText;
 
-                    GeofenceStatusLabel.Text = $"📍 Đang xử lý: {targetPoi.Name}...";
-
-                    var cache = await _dbContext.GetCacheAsync(targetPoi.Id, targetLang);
-                    string audioText = cache?.TranslatedText;
-
-                    if (string.IsNullOrEmpty(audioText))
+                    if (string.IsNullOrEmpty(speechText))
                     {
-                        audioText = await _translationService.TranslateAsync(targetPoi.Description_VN, targetLang);
-                        await _dbContext.SaveCacheAsync(new TranslationCache
-                        {
-                            PoiId = targetPoi.Id,
-                            LanguageCode = targetLang,
-                            TranslatedText = audioText,
-                            CreatedAt = DateTime.Now
-                        });
+                        speechText = await _translationService.TranslateAsync(targetPoi.Description_VN, lang);
+                        await _dbContext.SaveCacheAsync(new TranslationCache { PoiId = targetPoi.Id, LanguageCode = lang, TranslatedText = speechText, CreatedAt = DateTime.Now });
                     }
 
-                    GeofenceStatusLabel.Text = $"🔊 Đang thuyết minh: {targetPoi.Name}...";
+                    await _ttsService.SpeakAsync(speechText);
 
-                    await _ttsService.SpeakAsync(audioText); // Chờ AI đọc xong
-
-                    // ĐỌC XONG: Tắt nút Stop và Xóa vòng tròn đỏ
+                    // Kết thúc thuyết minh
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
                         StopAudioBtn.IsVisible = false;
-                        VinhKhanhMap.MapElements.Clear(); // Xóa vòng highlight
+                        VinhKhanhMap.MapElements.Clear();
                         GeofenceStatusLabel.Text = "Radar đang tiếp tục quét...";
                     });
                     _isSpeaking = false;
                 }
             }
-            catch (Exception) { /* Bỏ qua lỗi ngầm */ }
+            catch (Exception) { /* Bỏ qua lỗi ngầm để tránh văng app khi mất GPS tạm thời */ }
         }
 
-        // SỰ KIỆN KHI KHÁCH BẤM NÚT DỪNG
         private void OnStopAudioClicked(object sender, EventArgs e)
         {
             _ttsService.Stop();
-
-            // Tắt nút Stop và Xóa vòng tròn đỏ ngay lập tức
             StopAudioBtn.IsVisible = false;
             VinhKhanhMap.MapElements.Clear();
-
             GeofenceStatusLabel.Text = "Đã dừng thuyết minh.";
             _isSpeaking = false;
         }
