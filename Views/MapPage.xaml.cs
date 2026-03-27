@@ -174,7 +174,6 @@ namespace VinhKhanhTourGuide.Views
                     });
 
                     string targetLang = CultureInfo.CurrentUICulture.Name;
-                    if (targetLang.StartsWith("vi")) targetLang = "en-US";
 
                     GeofenceStatusLabel.Text = $"📍 Đang xử lý: {targetPoi.Name}...";
 

@@ -10,17 +10,20 @@ namespace VinhKhanhTourGuide.Services
     {
         private readonly HttpClient _httpClient;
 
-        // ⚠️ Nên chuyển key sang config sau khi test xong
-        private const string GeminiApiKey = "AIzaSyDcqDqk7XYtcmyVhxc9WXxSczPuaZLHJh8";
+        private const string GeminiApiKey = "AIzaSyDV53VMx8HjDWKtbSiXT12tIGp3WZci2JQ";
 
         public TranslationService()
         {
-            // HttpClient handler giúp tránh lỗi socket trên Android
-            _httpClient = new HttpClient(new HttpClientHandler());
+            _httpClient = new HttpClient();
         }
 
         public async Task<string> TranslateAsync(string textOriginal, string targetLanguageCode)
         {
+            if (targetLanguageCode.StartsWith("vi", StringComparison.OrdinalIgnoreCase))
+            {
+                return textOriginal;
+            }
+
             try
             {
                 string prompt = $"Translate the following Vietnamese culinary description to {targetLanguageCode}. Preserve the cultural nuance. Only return the translated text without any quotes or extra explanations: {textOriginal}";
@@ -29,12 +32,10 @@ namespace VinhKhanhTourGuide.Services
                 string jsonContent = JsonSerializer.Serialize(requestBody);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                // Vẫn dùng v1beta và gemini-2.5-flash cho chắc cốp
                 string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GeminiApiKey}";
 
                 var response = await _httpClient.PostAsync(url, content);
 
-                // NẾU GOOGLE TRẢ VỀ LỖI (Bao gồm cả 404) -> ĐỌC THẲNG LÝ DO TỪ GOOGLE
                 if (!response.IsSuccessStatusCode)
                 {
                     string googleError = await response.Content.ReadAsStringAsync();

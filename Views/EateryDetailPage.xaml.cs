@@ -32,10 +32,6 @@ public partial class EateryDetailPage : ContentPage
         try
         {
             string deviceLang = CultureInfo.CurrentUICulture.Name;
-            if (deviceLang.StartsWith("vi"))
-            {
-                deviceLang = "en-US";
-            }
 
             StatusLabel.Text = $"Đang dịch sang ngôn ngữ máy ({deviceLang})...";
 
