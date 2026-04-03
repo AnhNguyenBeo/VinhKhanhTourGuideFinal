@@ -9,5 +9,7 @@ namespace VinhKhanhTourGuide.Api.Data
 
         // Đại diện cho cái bảng Poi trong SQL Server
         public DbSet<Poi> Poi { get; set; }
+
+        public DbSet<ListeningLog> ListeningLogs { get; set; }
     }
 }

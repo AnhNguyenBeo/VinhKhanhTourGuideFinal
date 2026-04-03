@@ -10,6 +10,7 @@ using VinhKhanhTourGuide.Models;
 using VinhKhanhTourGuide.Services;
 using VinhKhanhTourGuide.Data;
 using Microsoft.Maui.Devices.Sensors;
+using System.Diagnostics;
 
 namespace VinhKhanhTourGuide.Views
 {
@@ -24,6 +25,9 @@ namespace VinhKhanhTourGuide.Views
         private Dictionary<string, DateTime> _spokenPoisDict = new();
         private readonly int _cooldownMinutes = 5;
         private bool _isSpeaking = false;
+        private Stopwatch _listenTimer = new Stopwatch();
+        private Location _currentLocation;
+        private Poi _currentListeningPoi;
 
         public MapPage(TtsService ttsService, TranslationService translationService, AppDbContext dbContext)
         {
@@ -182,7 +186,13 @@ namespace VinhKhanhTourGuide.Views
                         await _dbContext.SaveCacheAsync(new TranslationCache { PoiId = targetPoi.Id, LanguageCode = lang, TranslatedText = speechText, CreatedAt = DateTime.Now });
                     }
 
+                    _currentListeningPoi = targetPoi;
+                    _currentLocation = userLocation;
+                    _listenTimer.Restart(); // BẮT ĐẦU BẤM GIỜ
+
                     await _ttsService.SpeakAsync(speechText);
+
+                    SendAnalyticsData();
 
                     // Kết thúc thuyết minh
                     MainThread.BeginInvokeOnMainThread(() =>
@@ -200,10 +210,43 @@ namespace VinhKhanhTourGuide.Views
         private void OnStopAudioClicked(object sender, EventArgs e)
         {
             _ttsService.Stop();
+
+            SendAnalyticsData();
+
             StopAudioBtn.IsVisible = false;
             VinhKhanhMap.MapElements.Clear();
             GeofenceStatusLabel.Text = "Đã dừng thuyết minh.";
             _isSpeaking = false;
+        }
+
+        private void SendAnalyticsData()
+        {
+            if (_currentListeningPoi == null || !_listenTimer.IsRunning) return;
+
+            _listenTimer.Stop();
+
+            // 1. Lấy hoặc tạo Mã thiết bị ẩn danh (Guid)
+            string sessionId = Preferences.Default.Get("SessionId", "");
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                sessionId = Guid.NewGuid().ToString();
+                Preferences.Default.Set("SessionId", sessionId); // Lưu lại cho các lần sau
+            }
+
+            // 2. Đóng gói dữ liệu
+            var log = new ListeningLog
+            {
+                PoiId = _currentListeningPoi.Id,
+                AnonymousSessionId = sessionId,
+                DurationSeconds = Math.Round(_listenTimer.Elapsed.TotalSeconds, 1),
+                Latitude = _currentLocation.Latitude,
+                Longitude = _currentLocation.Longitude
+            };
+
+            // 3. Gửi ngầm (không dùng await để tránh làm đơ giao diện)
+            _ = _dbContext.SendAnalyticsAsync(log);
+
+            _currentListeningPoi = null; // Reset lại
         }
     }
 }

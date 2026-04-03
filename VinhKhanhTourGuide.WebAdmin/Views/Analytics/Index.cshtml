@@ -1,0 +1,120 @@
+﻿@model List<VinhKhanhTourGuide.WebAdmin.Models.AnalyticsViewModel>
+@{
+    ViewData["Title"] = "Báo cáo phân tích dữ liệu";
+}
+
+<h2 class="mb-4 text-primary">📊 Phân Tích Dữ Liệu Nghe Thuyết Minh</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Top Quán Ăn Được Nghe Nhiều Nhất</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="topPoisChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Chi Tiết Thời Gian</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Tên Quán</th>
+                            <th>Lượt Nghe</th>
+                            <th>TB (Giây)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                                <tr>
+                                    <td>@item.PoiName</td>
+                                    <td><span class="badge bg-success">@item.TotalListens</span></td>
+                                    <td>@item.AverageDuration s</td>
+                                </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-2">
+    <div class="col-12">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-danger">🔥 Bản Đồ Nhiệt: Vị Trí Khách Nghe Thuyết Minh</h6>
+            </div>
+            <div class="card-body p-0">
+                <div id="heatmapContainer" style="height: 450px; width: 100%; border-radius: 0 0 5px 5px; z-index: 1;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+
+<script>
+    // ==========================================
+    // 1. VẼ BIỂU ĐỒ CỘT
+    // ==========================================
+    var labels = @Html.Raw(Json.Serialize(Model.Select(m => m.PoiName)));
+    var dataListens = @Html.Raw(Json.Serialize(Model.Select(m => m.TotalListens)));
+
+    var ctx = document.getElementById('topPoisChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Số lượt nghe',
+                data: dataListens,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+
+    // ==========================================
+    // 2. VẼ BẢN ĐỒ NHIỆT (HEAT MAP)
+    // ==========================================
+    // Khởi tạo bản đồ ngay trung tâm đường Vĩnh Khánh
+    var map = L.map('heatmapContainer').setView([10.7610, 106.7030], 16);
+
+    // Kéo dữ liệu đường phố từ OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // Lấy dữ liệu tọa độ từ C# (An toàn: nếu rỗng thì mảng [])
+    var heatData = @Html.Raw(ViewBag.HeatmapData != null ? ViewBag.HeatmapData : "[]");
+
+    // Nếu có dữ liệu thì tiến hành rải màu nhiệt lên bản đồ
+    if (heatData && heatData.length > 0) {
+        var heat = L.heatLayer(heatData, {
+            radius: 25,     // Độ lan rộng của quầng sáng
+            blur: 15,       // Độ mờ nhòe (càng cao càng giống quầng nhiệt)
+            maxZoom: 17,
+            gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'} // Màu sắc tăng dần
+        }).addTo(map);
+    }
+</script>

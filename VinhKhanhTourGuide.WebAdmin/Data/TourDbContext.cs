@@ -7,5 +7,7 @@ namespace VinhKhanhTourGuide.WebAdmin.Data
     {
         public TourDbContext(DbContextOptions<TourDbContext> options) : base(options) { }
         public DbSet<Poi> Poi { get; set; }
+
+        public DbSet<ListeningLog> ListeningLogs { get; set; }
     }
 }

@@ -1,6 +1,25 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Chính sách bảo mật";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="d-flex align-items-center mb-4">
+    <h2 class="text-primary fw-bold m-0"><i class="fas fa-shield-alt me-2"></i> @ViewData["Title"]</h2>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-4 p-md-5">
+        <h4 class="text-dark fw-bold mb-3">Bảo vệ dữ liệu hệ thống</h4>
+        <p class="text-muted" style="line-height: 1.8;">
+            Hệ thống <strong>VinhKhanhTourGuide.WebAdmin</strong> được sử dụng nội bộ để quản lý thông tin các điểm đến.
+            Mọi dữ liệu bao gồm tọa độ, hình ảnh và văn bản đều được lưu trữ an toàn trên SQL Server.
+        </p>
+
+        <hr class="my-4 text-muted">
+
+        <h5 class="text-secondary fw-bold mb-3"><i class="fas fa-user-lock me-2"></i> Quyền riêng tư của Du khách</h5>
+        <p class="text-muted" style="line-height: 1.8;">
+            Ứng dụng Mobile chỉ thu thập tọa độ GPS cục bộ để phục vụ tính năng Radar (Geofencing) và không gửi lịch sử di chuyển của người dùng lên máy chủ.
+            Quá trình dịch thuật bằng AI chỉ truyền tải nội dung tĩnh của hệ thống.
+        </p>
+    </div>
+</div>

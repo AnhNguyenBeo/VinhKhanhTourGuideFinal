@@ -3,9 +3,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using VinhKhanhTourGuide.Models;
+
 
 namespace VinhKhanhTourGuide.Data
 {
@@ -36,7 +38,6 @@ namespace VinhKhanhTourGuide.Data
                 handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
                 using var client = new HttpClient(handler);
 
-              
                 string apiUrl = "http://10.0.2.2:5099/api/pois";
 
                 var response = await client.GetStringAsync(apiUrl);
@@ -95,6 +96,39 @@ namespace VinhKhanhTourGuide.Data
         {
             await Init();
             await _database.InsertAsync(cache);
+        }
+
+        public async Task SendAnalyticsAsync(ListeningLog log)
+        {
+            try
+            {
+                string apiUrl = "http://10.0.2.2:5099/api/listeninglogs";
+
+                var json = JsonSerializer.Serialize(log);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                using var client = new HttpClient();
+
+                // ĐỌC KẾT QUẢ TRẢ VỀ TỪ SERVER
+                var response = await client.PostAsync(apiUrl, content);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Server trả về 200 OK -> Thực sự thành công lưu vào DB
+                    System.Diagnostics.Debug.WriteLine($"✅ THÀNH CÔNG: Đã lưu {log.PoiId} vào Database!");
+                }
+                else
+                {
+                    // Server từ chối hoặc bị lỗi (400, 404, 500...)
+                    string errorDetail = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"❌ API TỪ CHỐI (Mã {response.StatusCode}): {errorDetail}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Trên điện thoại thì chỉ cần in ra cửa sổ Output thôi
+                System.Diagnostics.Debug.WriteLine($"❌ MẤT KẾT NỐI MẠNG HOẶC LỖI: {ex.Message}");
+            }
         }
     }
 }
