@@ -1,311 +1,1170 @@
-﻿<!DOCTYPE html>
+﻿
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PRD ĐẶC TẢ CHI TIẾT - VinhKhanhTourGuide Fullstack</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PRD Đặc tả chi tiết - VinhKhanhTourGuide Fullstack</title>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #8e44ad;
-            --accent-color: #d35400;
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-main: #333;
+            --bg: #eef4f8;
+            --bg-soft: #f7fbfd;
+            --card: #ffffff;
+            --card-2: #f9fcfe;
+            --text: #0f172a;
+            --muted: #475569;
+            --primary: #0891b2;
+            --primary-2: #06b6d4;
+            --primary-3: #67e8f9;
+            --secondary: #0f766e;
+            --accent: #0ea5e9;
+            --line: #dbe7ef;
+            --soft: #eff9ff;
+            --soft2: #eefaf7;
+            --ok: #ecfdf5;
+            --warn: #fff7ed;
+            --danger: #fef2f2;
+            --shadow: 0 10px 30px rgba(15, 23, 42, .08);
         }
 
-        /* Hiệu ứng cuộn mượt mà */
+        * {
+            box-sizing: border-box
+        }
+
         html {
-            scroll-behavior: smooth;
+            scroll-behavior: smooth
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.7;
-            color: var(--text-main);
-            background-color: var(--bg-color);
             margin: 0;
-            padding: 0;
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.7;
+            color: var(--text);
+            background: radial-gradient(circle at top right, rgba(103, 232, 249, .18), transparent 18%), linear-gradient(180deg, #f7fbfd 0%, #eef4f8 100%);
         }
 
         .container {
-            max-width: 1100px;
-            margin: 40px auto;
-            padding: 20px;
+            max-width: 1200px;
+            margin: 28px auto;
+            padding: 0 18px 28px;
         }
 
-        /* Header chuyên nghiệp */
-        .header {
-            text-align: center;
-            background: white;
-            padding: 40px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-bottom: 6px solid var(--accent-color);
-            margin-bottom: 30px;
+        .hero {
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at 78% 18%, rgba(103, 232, 249, .28), transparent 22%), radial-gradient(circle at 22% 0%, rgba(34, 211, 238, .18), transparent 20%), linear-gradient(135deg, #020617 0%, #0f172a 45%, #0b3a4a 72%, #06b6d4 100%);
+            border: 1px solid rgba(103, 232, 249, .16);
+            border-bottom: 6px solid #67e8f9;
+            border-radius: 24px;
+            padding: 42px 34px 34px;
+            box-shadow: 0 20px 50px rgba(2, 6, 23, .28);
+            margin-bottom: 22px;
         }
 
-            .header h1 {
-                color: var(--primary-color);
+            .hero::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(180deg, rgba(255, 255, 255, .05), transparent 35%);
+                pointer-events: none;
+            }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: rgba(103, 232, 249, .14);
+            color: #d9fbff;
+            border: 1px solid rgba(103, 232, 249, .26);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            backdrop-filter: blur(8px);
+        }
+
+        .hero h1 {
+            margin: 0 0 10px;
+            color: #f4fdff;
+            font-size: 2.45rem;
+            line-height: 1.18;
+            text-transform: none;
+            letter-spacing: -.8px;
+        }
+
+        .hero p {
+            margin: 0;
+            color: rgba(230, 247, 255, .88);
+            font-size: 1.05rem;
+            max-width: 900px;
+        }
+
+        .hero-meta {
+            margin-top: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            color: #d1f4ff;
+            font-size: .94rem;
+        }
+
+        .meta-pill {
+            background: rgba(255, 255, 255, .08);
+            border: 1px solid rgba(103, 232, 249, .24);
+            color: #e7fbff;
+            border-radius: 999px;
+            padding: 7px 13px;
+            backdrop-filter: blur(10px);
+        }
+
+        .summary-grid {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, .10);
+            border: 1px solid rgba(103, 232, 249, .18);
+            border-radius: 16px;
+            padding: 16px 18px;
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+        }
+
+            .summary-card h3 {
+                margin: 0 0 6px;
+                font-size: 1rem;
+                color: #9ff7ff;
+            }
+
+            .summary-card p {
                 margin: 0;
-                font-size: 2.2em;
-                text-transform: uppercase;
+                font-size: .95rem;
+                color: #e6faff;
             }
 
-            .header p {
-                color: #666;
-                font-size: 1.1em;
-                margin-top: 10px;
-            }
+        .nav {
+            position: sticky;
+            top: 12px;
+            z-index: 50;
+            background: rgba(255, 255, 255, .78);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(8, 145, 178, .10);
+            border-radius: 18px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+            padding: 10px;
+            margin-bottom: 24px;
+        }
 
-        /* THANH MENU ĐIỀU HƯỚNG DÍNH (STICKY NAV) - ĐÃ SỬA LỖI */
         .nav-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             gap: 10px;
-            margin-bottom: 30px;
-            position: sticky; /* Giữ menu dính lên đầu */
-            top: 15px; /* Khoảng cách từ đỉnh trình duyệt */
-            z-index: 1000;
-            background: rgba(244, 247, 246, 0.9);
-            backdrop-filter: blur(8px); /* Hiệu ứng kính mờ */
-            padding: 10px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        .nav-item {
+        .nav a {
             text-decoration: none;
-            background: white;
-            color: var(--primary-color);
-            padding: 10px;
+            background: linear-gradient(180deg, #ffffff, #f7fbfd);
+            color: #0f172a;
+            border: 1px solid #dce8ef;
+            border-radius: 12px;
+            padding: 10px 12px;
             text-align: center;
-            border-radius: 8px;
+            font-size: .9rem;
             font-weight: 600;
-            font-size: 0.85em;
-            border: 1px solid #ddd;
-            transition: all 0.3s ease;
+            transition: .22s ease;
         }
 
-            .nav-item:hover {
-                background: var(--secondary-color);
-                color: white;
-                transform: translateY(-2px);
+            .nav a:hover,
+            .nav a.active {
+                background: linear-gradient(135deg, #0891b2, #06b6d4);
+                color: #ffffff;
+                border-color: transparent;
+                transform: translateY(-1px);
+                box-shadow: 0 8px 22px rgba(8, 145, 178, .22);
             }
 
-        /* Cấu trúc các Section */
         .section {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 35px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border-left: 5px solid var(--secondary-color);
-            scroll-margin-top: 100px; /* Tránh menu che tiêu đề khi cuộn đến */
+            position: relative;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+            border: 1px solid #dce8ef;
+            border-left: 5px solid var(--primary);
+            border-radius: 18px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            scroll-margin-top: 95px;
         }
 
+            .section::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 120px;
+                height: 120px;
+                background: radial-gradient(circle, rgba(103, 232, 249, .16), transparent 70%);
+                pointer-events: none;
+            }
+
         h2 {
-            color: var(--secondary-color);
-            font-size: 1.6em;
-            border-bottom: 1px solid #eee;
+            margin: 0 0 14px;
+            color: #0f172a;
+            font-size: 1.7rem;
+            border-bottom: 1px solid #e6eef4;
             padding-bottom: 10px;
-            margin-top: 0;
+            letter-spacing: -.3px;
         }
 
         h3 {
-            color: var(--primary-color);
-            margin-top: 25px;
+            color: #0f172a;
+            margin: 22px 0 10px;
+            font-size: 1.12rem;
         }
 
-        /* Tables & Logic Boxes */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
+        h4 {
+            color: #1e293b;
+            margin: 14px 0 8px;
+            font-size: 1rem;
         }
 
-        th, td {
-            border: 1px solid #e0e0e0;
-            padding: 12px;
-            text-align: left;
+        p {
+            margin: 0 0 12px;
+            color: #334155
         }
 
-        th {
-            background: #f8f9fa;
-            color: var(--primary-color);
+        ul,
+        ol {
+            margin: 0 0 12px 18px;
+            padding: 0
+        }
+
+        li {
+            margin: 6px 0;
+            color: #334155
+        }
+
+        strong {
+            color: #0f172a
+        }
+
+        .logic-box,
+        .note-box,
+        .warn-box,
+        .ok-box {
+            padding: 15px 16px;
+            border-radius: 14px;
+            margin: 14px 0;
+            border-left: 4px solid;
+            box-shadow: 0 8px 16px rgba(15, 23, 42, .04);
         }
 
         .logic-box {
-            background: #fff3e0;
-            border-left: 4px solid var(--accent-color);
-            padding: 15px;
-            margin: 15px 0;
-            border-radius: 0 8px 8px 0;
+            background: var(--soft);
+            border-color: #0ea5e9;
+        }
+
+        .note-box {
+            background: #f0f9ff;
+            border-color: #38bdf8;
+        }
+
+        .warn-box {
+            background: var(--danger);
+            border-color: #ef4444;
+        }
+
+        .ok-box {
+            background: var(--ok);
+            border-color: #10b981;
         }
 
         code {
-            background: #f1f1f1;
-            padding: 3px 6px;
-            border-radius: 4px;
-            color: #d63031;
-            font-family: monospace;
+            background: #eff6ff;
+            color: #0369a1;
+            padding: 2px 7px;
+            border-radius: 7px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: .92em;
+            border: 1px solid #dbeafe;
         }
 
-        /* Diagram Wrapper */
-        .mermaid-wrapper {
-            background: white;
-            padding: 20px;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            overflow-x: auto;
-            text-align: center;
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 14px 0 18px;
+            font-size: .95rem;
+            overflow: hidden;
+            border-radius: 14px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .04);
         }
 
-        @media (max-width: 768px) {
-            .nav-grid {
-                grid-template-columns: repeat(3, 1fr);
+        th,
+        td {
+            border-right: 1px solid #e6eef4;
+            border-bottom: 1px solid #e6eef4;
+            padding: 11px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+            th:last-child,
+            td:last-child {
+                border-right: none
             }
 
+        th {
+            background: linear-gradient(180deg, #0f172a, #164e63);
+            color: #f8feff;
+            font-weight: 700;
+        }
+
+        td {
+            background: #ffffff;
+            color: #334155;
+        }
+
+        tbody tr:nth-child(even) td {
+            background: #fbfdff;
+        }
+
+        tbody tr:hover td {
+            background: #f0fbff;
+        }
+
+        .two-col,
+        .three-col {
+            display: grid;
+            gap: 16px;
+        }
+
+        .two-col {
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))
+        }
+
+        .three-col {
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr))
+        }
+
+        .mini-card {
+            border: 1px solid #dce8ef;
+            border-radius: 16px;
+            padding: 18px;
+            background: linear-gradient(180deg, #ffffff, #f9fcfe);
+            box-shadow: 0 10px 20px rgba(15, 23, 42, .05);
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+            .mini-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 16px 28px rgba(15, 23, 42, .08);
+            }
+
+            .mini-card h4 {
+                margin-top: 0;
+                color: #0891b2;
+            }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #ecfeff;
+            color: #0f766e;
+            border: 1px solid #bae6fd;
+            font-size: .8rem;
+            font-weight: 700;
+            margin: 0 6px 6px 0;
+        }
+
+        .mermaid-wrap {
+            background: linear-gradient(180deg, #f8fbfd, #ffffff);
+            padding: 18px;
+            border: 1px solid #dce8ef;
+            border-radius: 14px;
+            overflow-x: auto;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .04);
+        }
+
+        .footer {
+            color: #64748b;
+            text-align: center;
+            padding: 14px 0 20px;
+            font-size: .92rem;
+        }
+
+        @media (max-width:768px) {
             .container {
-                padding: 10px;
+                margin: 18px auto
+            }
+
+            .hero {
+                padding: 28px 20px
+            }
+
+                .hero h1 {
+                    font-size: 1.8rem
+                }
+
+            .section {
+                padding: 22px 18px
+            }
+
+            .nav-grid {
+                grid-template-columns: repeat(3, 1fr)
+            }
+        }
+
+        @media (max-width:560px) {
+            .hero-meta {
+                gap: 8px
+            }
+
+            .meta-pill {
+                font-size: .85rem
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr
+            }
+
+            .nav-grid {
+                grid-template-columns: repeat(2, 1fr)
             }
         }
     </style>
 </head>
 <body>
-
     <div class="container">
-        <div class="header">
-            <h1>TÀI LIỆU YÊU CẦU SẢN PHẨM (PRD)</h1>
-            <p><strong>Hệ thống VinhKhanhTourGuide Fullstack</strong></p>
-            <div style="margin-top: 15px; font-size: 0.9em; color: #888;">Cập nhật: 27/03/2026 | Tác giả: Nhật Anh & Hoài Trung</div>
-        </div>
+        <header class="hero">
+            <div class="eyebrow">PRD HTML hoàn chỉnh</div>
+            <h1>Tài liệu yêu cầu sản phẩm (PRD)<br>Hệ thống VinhKhanhTourGuide Fullstack</h1>
+            <p>
+                Bản PRD này được viết lại đầy đủ dựa trên PRD gốc, mã nguồn Mobile App, Web API, Web Admin
+                và ảnh snapshot dữ liệu thực tế của hệ thống.
+            </p>
+            <div class="hero-meta">
+                <span class="meta-pill"><b>Phiên bản:</b> 1.0 Full</span>
+                <span class="meta-pill"><b>Cập nhật:</b> 10/04/2026</span>
+                <span class="meta-pill"><b>Kiến trúc:</b> Mobile + API + Web Admin</span>
+                <span class="meta-pill"><b>Phạm vi:</b> Đồ án Fullstack</span>
+            </div>
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h3>Mục tiêu</h3>
+                    <p>Tự động thuyết minh du lịch ẩm thực theo vị trí thực tế, hỗ trợ đa ngôn ngữ và offline-first.</p>
+                </div>
+                <div class="summary-card">
+                    <h3>Người dùng</h3>
+                    <p>Khách du lịch, quản trị viên nội dung, người vận hành theo dõi analytics.</p>
+                </div>
+                <div class="summary-card">
+                    <h3>Công nghệ</h3>
+                    <p>.NET MAUI, ASP.NET Core MVC, ASP.NET Core Web API, SQL Server, SQLite, TTS, GPS.</p>
+                </div>
+                <div class="summary-card">
+                    <h3>Giá trị chính</h3>
+                    <p>Quản lý tập trung trên web, đồng bộ qua API, trải nghiệm nghe tự động trên mobile.</p>
+                </div>
+            </div>
+        </header>
 
-        <nav class="nav-grid">
-            <a href="#muc-1" class="nav-item">Tổng quan</a>
-            <a href="#muc-2" class="nav-item">Kiến trúc</a>
-            <a href="#muc-3" class="nav-item">Web Admin</a>
-            <a href="#muc-4" class="nav-item">Web API</a>
-            <a href="#muc-5" class="nav-item">Mobile App</a>
-            <a href="#muc-6" class="nav-item">Database</a>
-            <a href="#muc-7" class="nav-item">Quy trình</a>
-            <a href="#muc-8" class="nav-item">Sơ đồ</a>
+        <nav class="nav">
+            <div class="nav-grid">
+                <a href="#muc-1">Tổng quan</a>
+                <a href="#muc-2">Mục tiêu</a>
+                <a href="#muc-3">Phạm vi</a>
+                <a href="#muc-4">Kiến trúc</a>
+                <a href="#muc-5">Web Admin</a>
+                <a href="#muc-6">Web API</a>
+                <a href="#muc-7">Mobile App</a>
+                <a href="#muc-8">Dữ liệu</a>
+                <a href="#muc-9">Quy trình</a>
+                <a href="#muc-10">Sơ đồ</a>
+                <a href="#muc-11">Nghiệm thu</a>
+                <a href="#muc-12">Rủi ro</a>
+            </div>
         </nav>
 
-        <div id="muc-1" class="section">
+        <section id="muc-1" class="section">
             <h2>1. Tổng quan dự án</h2>
-            <p>VinhKhanhTourGuide là hệ thống thuyết minh du lịch thông minh hoạt động theo mô hình <strong>Fullstack Client-Server</strong>. Hệ thống cho phép quản lý tập trung nội dung các điểm đến và tự động cập nhật đến thiết bị của khách du lịch thông qua API.</p>
-        </div>
-
-        <div id="muc-2" class="section">
-            <h2>2. Kiến trúc 3 Lớp (Three-Tier)</h2>
-            <ul>
-                <li><strong>Presentation Layer:</strong> .NET MAUI (Mobile) & ASP.NET Core MVC (Web Admin).</li>
-                <li><strong>Application Layer (API):</strong> Web API RESTful cung cấp dữ liệu qua cổng 5099.</li>
-                <li><strong>Data Layer:</strong> SQL Server (Trung tâm) & SQLite (Cache Offline).</li>
-            </ul>
-        </div>
-
-        <div id="muc-3" class="section">
-            <h2>3. Phân hệ Web Admin (MVC)</h2>
-            <p>Xây dựng trên ASP.NET Core MVC giúp quản trị viên điều hành toàn bộ dữ liệu:</p>
-            <ul>
-                <li><strong>Cơ chế Localization:</strong> Ép chuẩn số <code>en-US</code> để lưu tọa độ GPS chính xác với dấu chấm thập phân.</li>
-                <li><strong>Quản lý POI:</strong> Giao diện CRUD (Thêm/Sửa/Xóa) quán ăn trực tiếp vào SQL Server trung tâm.</li>
-            </ul>
-        </div>
-
-        <div id="muc-4" class="section">
-            <h2>4. Phân hệ Web API (Cầu nối)</h2>
-            <div class="logic-box">
-                <strong>Thông số kỹ thuật API:</strong><br>
-                - Endpoint: <code>/api/pois</code><br>
-                - IP Máy ảo: <code>10.0.2.2</code><br>
-                - Cấu hình: <code>usesCleartextTraffic="true"</code> (Cho phép kết nối HTTP nội bộ).
+            <p>
+                VinhKhanhTourGuide là hệ thống thuyết minh du lịch ẩm thực thông minh hoạt động theo mô hình
+                <strong>Fullstack Client–Server</strong>. Hệ thống cho phép quản lý tập trung dữ liệu điểm đến,
+                đồng bộ dữ liệu về ứng dụng di động, tự động phát thuyết minh khi khách du lịch đi vào vùng gần quán
+                và ghi nhận dữ liệu nghe để phục vụ phân tích vận hành.
+            </p>
+            <div class="note-box">
+                <strong>Tư tưởng cốt lõi:</strong> quản lý tập trung ở server, trải nghiệm tự động ở mobile, vẫn hoạt động được
+                khi mạng yếu nhờ cơ chế cache SQLite trên thiết bị.
             </div>
-        </div>
+            <div class="three-col">
+                <div class="mini-card">
+                    <h4>Bài toán</h4>
+                    <p>Khách du lịch khó tiếp cận thông tin món ăn và câu chuyện địa phương theo đúng vị trí thực tế.</p>
+                </div>
+                <div class="mini-card">
+                    <h4>Giải pháp</h4>
+                    <p>Ứng dụng mobile tự phát hiện vị trí, tự động phát nội dung, hỗ trợ dịch và phát âm bằng TTS.</p>
+                </div>
+                <div class="mini-card">
+                    <h4>Lợi ích</h4>
+                    <p>Tăng trải nghiệm tham quan, giảm phụ thuộc hướng dẫn viên, tạo dữ liệu phân tích hành vi nghe.</p>
+                </div>
+            </div>
+        </section>
 
-        <div id="muc-5" class="section">
-            <h2>5. Phân hệ Mobile App (MAUI)</h2>
-            <h3>5.1. Cơ chế Radar & Geofencing</h3>
-            <p>Sử dụng <code>IDispatcherTimer</code> quét vị trí mỗi 5 giây. Nếu khoảng cách <= <code>GeofenceRadius</code>, hệ thống kích hoạt thuyết minh.</p>
-            <h3>5.2. Offline-First Logic</h3>
-            <p>Dữ liệu từ API được đồng bộ và ghi đè vào SQLite Local mỗi khi App có mạng, đảm bảo thuyết minh vẫn hoạt động ở những khu vực sóng yếu.</p>
-        </div>
+        <section id="muc-2" class="section">
+            <h2>2. Mục tiêu sản phẩm</h2>
+            <h3>2.1. Mục tiêu nghiệp vụ</h3>
+            <ul>
+                <li>Số hóa danh sách quán ăn và nội dung thuyết minh của khu ẩm thực Vĩnh Khánh.</li>
+                <li>Tạo một trải nghiệm tham quan tự động, trực quan, dễ dùng trên điện thoại.</li>
+                <li>Cho phép quản trị viên cập nhật tọa độ, nội dung và bán kính nhận diện tập trung trên web.</li>
+                <li>Thu thập dữ liệu nghe để đánh giá độ quan tâm của khách tại từng địa điểm.</li>
+            </ul>
 
-        <div id="muc-6" class="section">
-            <h2>6. Thiết kế Cơ sở dữ liệu (Chi tiết)</h2>
+            <h3>2.2. Mục tiêu kỹ thuật</h3>
+            <ul>
+                <li>Tổ chức hệ thống theo mô hình 3 lớp dễ mở rộng.</li>
+                <li>Đồng bộ dữ liệu giữa SQL Server trung tâm và SQLite local trên thiết bị.</li>
+                <li>Quét GPS định kỳ để phát hiện vào vùng geofence.</li>
+                <li>Hỗ trợ phát âm thanh đa ngôn ngữ theo ngôn ngữ máy.</li>
+                <li>Gửi analytics log lên server để tổng hợp theo thời gian thực gần đúng.</li>
+            </ul>
+        </section>
 
-            <h3>6.1. Bảng Điểm đến (POI Table)</h3>
+        <section id="muc-3" class="section">
+            <h2>3. Phạm vi và đối tượng sử dụng</h2>
+            <h3>3.1. Đối tượng sử dụng</h3>
+            <ul>
+                <li><strong>Khách du lịch:</strong> dùng ứng dụng mobile để xem bản đồ, nghe thuyết minh, mở chỉ đường.</li>
+                <li><strong>Quản trị viên:</strong> dùng Web Admin để CRUD POI và xem thống kê analytics.</li>
+                <li><strong>Người vận hành hệ thống:</strong> theo dõi API, dữ liệu log và cơ sở dữ liệu trung tâm.</li>
+            </ul>
+
+            <h3>3.2. Trong phạm vi</h3>
+            <ul>
+                <li>CRUD điểm đến/quán ăn.</li>
+                <li>Đồng bộ dữ liệu qua endpoint <code>/api/pois</code>.</li>
+                <li>Quét geofence mỗi 5 giây trên app mobile.</li>
+                <li>Cache dữ liệu POI và bản dịch trên SQLite.</li>
+                <li>TTS phát nội dung theo ngôn ngữ máy.</li>
+                <li>Gửi log nghe qua endpoint <code>/api/listeninglogs</code>.</li>
+                <li>Hiển thị thống kê và heatmap trên Web Admin.</li>
+            </ul>
+
+            <h3>3.3. Ngoài phạm vi hiện tại</h3>
+            <ul>
+                <li>Đăng nhập người dùng cuối và phân quyền phức tạp.</li>
+                <li>Thanh toán, đặt bàn, đặt món.</li>
+                <li>Push notification.</li>
+                <li>CMS nội dung nhiều bước duyệt.</li>
+                <li>Cơ chế AI translation đi qua backend an toàn hoàn chỉnh.</li>
+            </ul>
+        </section>
+
+        <section id="muc-4" class="section">
+            <h2>4. Kiến trúc hệ thống 3 lớp</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lớp</th>
+                        <th>Thành phần</th>
+                        <th>Công nghệ</th>
+                        <th>Vai trò</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Presentation Layer</td>
+                        <td>Mobile App + Web Admin</td>
+                        <td>.NET MAUI, ASP.NET Core MVC</td>
+                        <td>Hiển thị giao diện cho khách du lịch và quản trị viên.</td>
+                    </tr>
+                    <tr>
+                        <td>Application Layer</td>
+                        <td>Web API</td>
+                        <td>ASP.NET Core Web API</td>
+                        <td>Cung cấp dữ liệu POI và tiếp nhận log analytics.</td>
+                    </tr>
+                    <tr>
+                        <td>Data Layer</td>
+                        <td>SQL Server + SQLite</td>
+                        <td>SQL Server, SQLite</td>
+                        <td>Lưu trữ tập trung và cache offline trên thiết bị.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="logic-box">
+                <strong>Thông số triển khai hiện tại:</strong><br>
+                - API nội bộ chạy qua cổng <code>5099</code><br>
+                - Android Emulator truy cập host qua IP <code>10.0.2.2</code><br>
+                - Mobile dùng SQLite local để lưu dữ liệu quán và cache bản dịch<br>
+                - Web Admin ép culture <code>en-US</code> để nhập tọa độ GPS chính xác
+            </div>
+
+            <div class="two-col">
+                <div class="mini-card">
+                    <h4>Luồng dữ liệu chính</h4>
+                    <ol>
+                        <li>Admin cập nhật POI vào SQL Server.</li>
+                        <li>Mobile gọi API để lấy danh sách POI.</li>
+                        <li>Mobile lưu POI vào SQLite local.</li>
+                        <li>Mobile quét GPS và phát thuyết minh khi vào vùng.</li>
+                        <li>App gửi log nghe về server để analytics tổng hợp.</li>
+                    </ol>
+                </div>
+                <div class="mini-card">
+                    <h4>Nguyên tắc thiết kế</h4>
+                    <ul>
+                        <li>Offline-first cho trải nghiệm ngoài hiện trường.</li>
+                        <li>Ưu tiên đơn giản, dễ demo và dễ bảo trì đồ án.</li>
+                        <li>Luồng dữ liệu rõ ràng giữa Admin → API → Mobile.</li>
+                        <li>Tối ưu cho kịch bản một khu ẩm thực với số lượng POI vừa phải.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="muc-5" class="section">
+            <h2>5. Phân hệ Web Admin (MVC)</h2>
+            <p>
+                Web Admin là giao diện vận hành của hệ thống, cho phép quản trị viên quản lý nội dung điểm đến
+                và theo dõi dữ liệu thống kê người dùng.
+            </p>
+
+            <h3>5.1. Chức năng chính</h3>
+            <ul>
+                <li>Quản lý danh sách POI theo mô hình CRUD: Thêm, Xem, Sửa, Xóa.</li>
+                <li>Nhập tọa độ GPS chuẩn dấu chấm thập phân nhờ culture <code>en-US</code>.</li>
+                <li>Quản lý các trường: mã quán, tên quán, ảnh, vĩ độ, kinh độ, mô tả, geofence radius, priority.</li>
+                <li>Xem trang analytics tổng hợp số lượt nghe, thời lượng trung bình và dữ liệu heatmap.</li>
+            </ul>
+
+            <h3>5.2. Vai trò nghiệp vụ</h3>
+            <ul>
+                <li>Là nơi duy nhất chỉnh sửa dữ liệu POI trung tâm.</li>
+                <li>Đảm bảo dữ liệu đầu vào chính xác để mobile app đồng bộ xuống.</li>
+                <li>Hỗ trợ người vận hành đánh giá quán nào được nghe nhiều nhất.</li>
+            </ul>
+
+            <h3>5.3. Kết quả đầu ra</h3>
+            <ul>
+                <li>Bảng <code>Poi</code> trên SQL Server luôn phản ánh dữ liệu chính thức của hệ thống.</li>
+                <li>Analytics hiển thị các chỉ số tổng hợp thân thiện với người quản trị.</li>
+            </ul>
+        </section>
+
+        <section id="muc-6" class="section">
+            <h2>6. Phân hệ Web API</h2>
+            <p>
+                Web API đóng vai trò cầu nối giữa cơ sở dữ liệu trung tâm và ứng dụng mobile. API hiện tại
+                được thiết kế đơn giản để phục vụ đúng nhu cầu cốt lõi của đồ án.
+            </p>
+
+            <h3>6.1. Endpoint hiện có</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>Endpoint</th>
+                        <th>Mục đích</th>
+                        <th>Đầu ra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GET</td>
+                        <td><code>/api/pois</code></td>
+                        <td>Lấy toàn bộ danh sách quán/điểm đến</td>
+                        <td>JSON danh sách POI</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td><code>/api/listeninglogs</code></td>
+                        <td>Nhận log nghe từ mobile app</td>
+                        <td>Trạng thái lưu thành công/thất bại</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>6.2. Trách nhiệm của API</h3>
+            <ul>
+                <li>Truy vấn SQL Server để trả danh sách POI cho mobile.</li>
+                <li>Ghi nhận log nghe, tự gán thời điểm <code>ListenAt</code> từ server.</li>
+                <li>Trả lỗi rõ ràng để phía mobile in log debug khi demo.</li>
+                <li>Tạo một lớp trung gian tách biệt giữa client và database.</li>
+            </ul>
+
+            <div class="ok-box">
+                <strong>Điểm tốt của thiết kế hiện tại:</strong> API đã tách được luồng lấy dữ liệu và luồng ghi analytics,
+                giúp mobile không thao tác trực tiếp với SQL Server.
+            </div>
+        </section>
+
+        <section id="muc-7" class="section">
+            <h2>7. Phân hệ Mobile App (MAUI)</h2>
+            <p>
+                Mobile App là phần tương tác trực tiếp với khách du lịch. Đây là trái tim trải nghiệm của hệ thống,
+                chịu trách nhiệm tải dữ liệu, hiển thị bản đồ, quét GPS, phát thuyết minh, cache nội dung và gửi analytics.
+            </p>
+
+            <h3>7.1. Chức năng chính</h3>
+            <ul>
+                <li>Xin quyền truy cập vị trí của thiết bị.</li>
+                <li>Tải dữ liệu quán ăn từ SQLite local; trước đó cố gắng đồng bộ từ API.</li>
+                <li>Hiển thị pin các địa điểm trên bản đồ.</li>
+                <li>Hiển thị danh sách quán ăn trong CollectionView.</li>
+                <li>Quét GPS mỗi 5 giây bằng timer.</li>
+                <li>Nếu vào vùng geofence, chọn POI theo <code>Priority</code> rồi đến khoảng cách.</li>
+                <li>Highlight vòng tròn đỏ trên bản đồ cho POI đang phát.</li>
+                <li>Lấy bản dịch từ cache hoặc gọi AI để dịch khi chưa có.</li>
+                <li>Phát âm bằng Text-to-Speech và cho phép dừng phát.</li>
+                <li>Gửi log analytics sau khi nghe xong hoặc bấm dừng.</li>
+            </ul>
+
+            <h3>7.2. Offline-first logic</h3>
+            <ol>
+                <li>Khi khởi tạo app, tạo bảng <code>Poi</code> và <code>TranslationCache</code> trong SQLite.</li>
+                <li>Gọi API để lấy dữ liệu POI mới nhất nếu có mạng.</li>
+                <li>Nếu gọi thành công, xóa dữ liệu POI cũ và ghi đè dữ liệu mới.</li>
+                <li>Nếu không có dữ liệu và cũng không gọi được API, nạp bộ dữ liệu backup cứng để tránh app trống.</li>
+            </ol>
+
+            <h3>7.3. Radar và Geofencing</h3>
+            <div class="logic-box">
+                <strong>Luật phát hiện POI mục tiêu:</strong><br>
+                1. App lấy vị trí hiện tại của người dùng.<br>
+                2. Tính khoảng cách tới từng POI trong danh sách.<br>
+                3. Nếu khoảng cách ≤ <code>GeofenceRadius</code>, POI được coi là hợp lệ.<br>
+                4. Nếu có nhiều POI cùng hợp lệ, ưu tiên POI có <code>Priority</code> nhỏ hơn.<br>
+                5. Nếu trùng priority, chọn POI gần nhất.<br>
+                6. Áp dụng cooldown để tránh đọc lặp lại quá nhanh.
+            </div>
+
+            <h3>7.4. Phát thuyết minh</h3>
+            <ul>
+                <li>Nếu ngôn ngữ thiết bị là tiếng Việt, dùng trực tiếp <code>Description_VN</code>.</li>
+                <li>Nếu khác tiếng Việt, app tìm trong bảng <code>TranslationCache</code>.</li>
+                <li>Nếu cache trống, app gọi AI để dịch rồi lưu lại.</li>
+                <li>TTS của hệ điều hành đọc nội dung và có thể dừng bằng nút Stop.</li>
+            </ul>
+
+            <h3>7.5. Màn hình chính</h3>
+            <ul>
+                <li><strong>MapPage:</strong> hiển thị bản đồ, pins, radar geofence, list quán, nút dừng audio.</li>
+                <li><strong>EateryDetailPage:</strong> hiển thị chi tiết quán, phát audio thủ công, mở chỉ đường đi bộ.</li>
+                <li><strong>SplashPage:</strong> trang mở đầu đơn giản của ứng dụng.</li>
+            </ul>
+        </section>
+
+        <section id="muc-8" class="section">
+            <h2>8. Thiết kế cơ sở dữ liệu</h2>
+            <h3>8.1. Bảng POI (dữ liệu điểm đến)</h3>
             <table>
                 <thead>
                     <tr><th>Trường</th><th>Kiểu</th><th>Mô tả</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td><code>Id</code></td><td>string (PK)</td><td>Mã quán (VD: OC-OANH)</td></tr>
-                    <tr><td><code>Name</code></td><td>string</td><td>Tên hiển thị</td></tr>
-                    <tr><td><code>Latitude</code></td><td>double</td><td>Vĩ độ (Chuẩn 10.xxxxx)</td></tr>
-                    <tr><td><code>Longitude</code></td><td>double</td><td>Kinh độ (Chuẩn 106.xxxxx)</td></tr>
-                    <tr><td><code>Description_VN</code></td><td>string</td><td>Bài thuyết minh tiếng Việt gốc</td></tr>
-                    <tr><td><code>GeofenceRadius</code></td><td>int</td><td><strong>Bán kính nhận diện (mét) - VD: 30</strong></td></tr>
-                    <tr><td><code>Priority</code></td><td>int</td><td>Thứ tự ưu tiên phát âm thanh</td></tr>
+                    <tr><td><code>Id</code></td><td>string (PK)</td><td>Mã quán, ví dụ <code>OC-OANH</code>.</td></tr>
+                    <tr><td><code>Name</code></td><td>string</td><td>Tên hiển thị của quán.</td></tr>
+                    <tr><td><code>ImageName</code></td><td>string</td><td>Tên file ảnh đại diện.</td></tr>
+                    <tr><td><code>Latitude</code></td><td>double</td><td>Vĩ độ vị trí của quán.</td></tr>
+                    <tr><td><code>Longitude</code></td><td>double</td><td>Kinh độ vị trí của quán.</td></tr>
+                    <tr><td><code>Description_VN</code></td><td>string</td><td>Nội dung thuyết minh tiếng Việt gốc.</td></tr>
+                    <tr><td><code>GeofenceRadius</code></td><td>int</td><td>Bán kính nhận diện theo mét.</td></tr>
+                    <tr><td><code>Priority</code></td><td>int</td><td>Mức ưu tiên phát âm thanh, số nhỏ ưu tiên cao hơn.</td></tr>
                 </tbody>
             </table>
 
-            <h3>6.2. Bảng Bộ nhớ đệm (TranslationCache)</h3>
+            <h3>8.2. Bảng TranslationCache (SQLite local)</h3>
             <table>
                 <thead>
                     <tr><th>Trường</th><th>Kiểu</th><th>Mô tả</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td><code>Id</code></td><td>int (PK)</td><td>Mã tăng tự động</td></tr>
-                    <tr><td><code>PoiId</code></td><td>string</td><td>Mã quán (Liên kết bảng POI)</td></tr>
-                    <tr><td><code>LanguageCode</code></td><td>string</td><td>Mã ngôn ngữ (VD: en-US, ja-JP)</td></tr>
-                    <tr><td><code>TranslatedText</code></td><td>string</td><td>Nội dung bài dịch từ AI Gemini</td></tr>
-                    <tr><td><code>CreatedAt</code></td><td>DateTime</td><td>Thời điểm tạo bản dịch</td></tr>
+                    <tr><td><code>Id</code></td><td>int (PK)</td><td>Mã tự tăng.</td></tr>
+                    <tr><td><code>PoiId</code></td><td>string</td><td>Khóa tham chiếu logic tới POI.</td></tr>
+                    <tr><td><code>LanguageCode</code></td><td>string</td><td>Mã ngôn ngữ như <code>en-US</code>, <code>ja-JP</code>.</td></tr>
+                    <tr><td><code>TranslatedText</code></td><td>string</td><td>Nội dung đã dịch dùng cho TTS.</td></tr>
+                    <tr><td><code>CreatedAt</code></td><td>DateTime</td><td>Thời điểm tạo bản dịch.</td></tr>
                 </tbody>
             </table>
-        </div>
 
-        <div id="muc-7" class="section">
-            <h2>7. Quy trình Xử lý Thuyết minh</h2>
+            <h3>8.3. Bảng ListeningLog (analytics)</h3>
+            <table>
+                <thead>
+                    <tr><th>Trường</th><th>Kiểu</th><th>Mô tả</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>Id</code></td><td>int (PK)</td><td>Mã log tự tăng ở server.</td></tr>
+                    <tr><td><code>PoiId</code></td><td>string</td><td>Mã quán đã được nghe.</td></tr>
+                    <tr><td><code>AnonymousSessionId</code></td><td>string</td><td>Mã ẩn danh sinh ra cho mỗi thiết bị.</td></tr>
+                    <tr><td><code>DurationSeconds</code></td><td>double</td><td>Thời lượng nghe thực tế.</td></tr>
+                    <tr><td><code>Latitude</code></td><td>double</td><td>Vị trí lúc log được gửi.</td></tr>
+                    <tr><td><code>Longitude</code></td><td>double</td><td>Vị trí lúc log được gửi.</td></tr>
+                    <tr><td><code>ListenAt</code></td><td>DateTime</td><td>Thời điểm server ghi nhận.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>8.4. Snapshot dữ liệu thực tế hiện có</h3>
+            <div class="note-box">
+                Phần dưới đây được tổng hợp lại từ ảnh snapshot cơ sở dữ liệu mà nhóm đã cung cấp.
+            </div>
+
+            <h4>Dữ liệu mẫu bảng POI</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Name</th>
+                        <th>ImageName</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Description_VN</th>
+                        <th>GeofenceRadius</th>
+                        <th>Priority</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>CHILLI-QUAN</td>
+                        <td>Chilli Quán</td>
+                        <td>placeholder_chilli.png</td>
+                        <td>10.7615</td>
+                        <td>106.7025</td>
+                        <td>Chilli Quán đặc sắc trên đường Vĩnh Khánh</td>
+                        <td>30</td>
+                        <td>4</td>
+                    </tr>
+                    <tr>
+                        <td>OC-NHI</td>
+                        <td>Ốc Nhi</td>
+                        <td>placeholder_ocnhi.png</td>
+                        <td>10.761</td>
+                        <td>106.7029</td>
+                        <td>Quán ốc Ốc Nhi trên đường Vĩnh Khánh</td>
+                        <td>30</td>
+                        <td>3</td>
+                    </tr>
+                    <tr>
+                        <td>OC-OANH</td>
+                        <td>Ốc Oanh</td>
+                        <td>placeholder_ocoanh.png</td>
+                        <td>10.7607099</td>
+                        <td>106.7032565</td>
+                        <td>Ốc Oanh là biểu tượng ẩm thực của phố Vĩnh Khánh...</td>
+                        <td>30</td>
+                        <td>1</td>
+                    </tr>
+                    <tr>
+                        <td>OC-THAO</td>
+                        <td>Ốc Thảo</td>
+                        <td>placeholder_octhao.png</td>
+                        <td>10.7605</td>
+                        <td>106.7035</td>
+                        <td>Quán ốc Ốc Thảo trên đường Vĩnh Khánh</td>
+                        <td>30</td>
+                        <td>5</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Dữ liệu mẫu bảng ListeningLog</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>PoiId</th>
+                        <th>AnonymousSessionId</th>
+                        <th>DurationSeconds</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>ListenAt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>OC-OANH</td>
+                        <td>33fd7e4d-9071-474b-8440-2c1db19d3712</td>
+                        <td>2.9</td>
+                        <td>10.7606816666667</td>
+                        <td>106.703453333333</td>
+                        <td>2026-04-04 15:31:42.6279812</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>OC-THAO</td>
+                        <td>33fd7e4d-9071-474b-8440-2c1db19d3712</td>
+                        <td>3.4</td>
+                        <td>10.7606933333333</td>
+                        <td>106.703631666667</td>
+                        <td>2026-04-04 15:32:48.6585269</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>OC-THAO</td>
+                        <td>33fd7e4d-9071-474b-8440-2c1db19d3712</td>
+                        <td>2.9</td>
+                        <td>10.7606933333333</td>
+                        <td>106.703631666667</td>
+                        <td>2026-04-04 15:34:27.4658185</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>OC-THAO</td>
+                        <td>33fd7e4d-9071-474b-8440-2c1db19d3712</td>
+                        <td>18</td>
+                        <td>10.7606933333333</td>
+                        <td>106.703631666667</td>
+                        <td>2026-04-04 15:36:36.3850714</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Migrations hiện có</h4>
+            <table>
+                <thead>
+                    <tr><th>MigrationId</th><th>ProductVersion</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>20260401065248_AddListeningLog</td><td>8.0.25</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="muc-9" class="section">
+            <h2>9. Quy trình xử lý nghiệp vụ</h2>
+            <h3>9.1. Quy trình đồng bộ dữ liệu</h3>
+            <ol>
+                <li>Mobile app khởi tạo SQLite local.</li>
+                <li>App gọi API <code>GET /api/pois</code>.</li>
+                <li>Nếu lấy dữ liệu thành công, app ghi đè bảng <code>Poi</code> local.</li>
+                <li>Nếu thất bại, app dùng dữ liệu local hoặc bộ backup cứng.</li>
+            </ol>
+
+            <h3>9.2. Quy trình thuyết minh tự động</h3>
             <div class="logic-box">
-                1. Quét vị trí GPS -> So sánh với <code>GeofenceRadius</code>.<br>
-                2. Kiểm tra SQLite bảng <code>TranslationCache</code> (theo PoiId + Ngôn ngữ máy).<br>
-                3. Nếu chưa có: Gọi Gemini AI dịch <code>Description_VN</code> -> Lưu Cache.<br>
-                4. Phát TTS (Text-to-Speech) và Vẽ vòng tròn Highlight đỏ trên bản đồ.
+                1. Quét GPS mỗi 5 giây.<br>
+                2. So sánh khoảng cách với <code>GeofenceRadius</code> của từng POI.<br>
+                3. Tạo danh sách POI hợp lệ trong vùng.<br>
+                4. Chọn POI có <code>Priority</code> nhỏ nhất, nếu bằng nhau thì chọn POI gần nhất.<br>
+                5. Kiểm tra cooldown để tránh phát lặp.<br>
+                6. Kiểm tra cache bản dịch theo <code>PoiId + LanguageCode</code>.<br>
+                7. Nếu chưa có, gọi AI dịch từ <code>Description_VN</code> và lưu cache.<br>
+                8. Phát TTS và vẽ vòng tròn highlight đỏ trên bản đồ.<br>
+                9. Sau khi kết thúc hoặc dừng giữa chừng, gửi analytics log lên server.
             </div>
-        </div>
 
-        <div id="muc-8" class="section">
-            <h2>8. Sơ đồ tuần tự (Sequence Diagram)</h2>
-            <div class="mermaid-wrapper">
-                <pre class="mermaid">
-sequenceDiagram
-    participant AD as Web Admin (MVC)
-    participant SQL as SQL Server
-    participant API as Web API
-    participant APP as Mobile App (MAUI)
-    participant AI as Gemini AI
+            <h3>9.3. Quy trình analytics</h3>
+            <ol>
+                <li>Mobile sinh hoặc đọc <code>AnonymousSessionId</code> từ Preferences.</li>
+                <li>App đo thời lượng nghe thực tế bằng stopwatch.</li>
+                <li>Khi kết thúc, app gọi <code>POST /api/listeninglogs</code>.</li>
+                <li>Server gán <code>ListenAt</code> và lưu vào SQL Server.</li>
+                <li>Web Admin gom nhóm theo <code>PoiId</code> để tính tổng lượt nghe và thời lượng trung bình.</li>
+            </ol>
+        </section>
 
-    AD->>SQL: Lưu bài review & GeofenceRadius (Dấu chấm thập phân)
-    APP->>API: GET /api/pois (Đồng bộ dữ liệu)
-    API->>SQL: Truy vấn POIs
-    SQL-->>API: Trả về POIs
-    API-->>APP: Trả về JSON (Port 5099)
-    APP->>APP: Lưu vào SQLite & Quét Radar GPS
-    Note over APP, AI: Vào vùng Geofence (30m)
-    APP->>AI: Dịch Description_VN (Nếu Cache trống)
-    AI-->>APP: Trả về bản dịch
-    APP->>APP: Phát thuyết minh & Vẽ vòng tròn đỏ
-            </pre>
+        <section id="muc-10" class="section">
+            <h2>10. Sơ đồ tuần tự (Sequence Diagram)</h2>
+
+            <div class="mermaid-wrap">
+                <div class="mermaid">
+                    sequenceDiagram
+                    participant AD as Web Admin
+                    participant SQL as SQL Server
+                    participant API as Web API
+                    participant APP as Mobile App
+                    participant AI as Gemini AI
+
+                    AD->>SQL: CRUD POI (tọa độ, mô tả, radius, priority)
+
+                    APP->>API: GET /api/pois
+                    API->>SQL: Query POI
+                    SQL-->>API: Return POI list
+                    API-->>APP: JSON dữ liệu POI
+                    APP->>APP: Lưu SQLite local (offline cache)
+
+                    loop Mỗi 5 giây
+                    APP->>APP: Lấy GPS hiện tại
+                    APP->>APP: So sánh khoảng cách với GeofenceRadius
+                    end
+
+                    Note over APP: User đi vào vùng geofence
+
+                    APP->>APP: Kiểm tra TranslationCache
+
+                    alt Cache đã tồn tại
+                    APP->>APP: Lấy bản dịch đã lưu
+                    else Chưa có cache
+                    APP->>AI: Dịch Description_VN
+                    AI-->>APP: Trả bản dịch
+                    APP->>APP: Lưu TranslationCache
+                    end
+
+                    APP->>APP: Phát TTS và highlight vòng tròn đỏ
+                    APP->>API: POST /api/listeninglogs
+                    API->>SQL: Save ListeningLog
+                    SQL-->>API: OK
+                    API-->>APP: Success
+                </div>
             </div>
+
+            <h3>10.1. Sơ đồ khối kiến trúc</h3>
+            <div class="mermaid-wrap">
+                <div class="mermaid">
+                    flowchart LR
+                    A[Web Admin MVC] -->|CRUD POI| B[(SQL Server)]
+                    C[Web API] -->|Doc POI / Ghi ListeningLog| B
+                    D[Mobile App MAUI] -->|GET api/pois| C
+                    D -->|POST api/listeninglogs| C
+                    D -->|Luu cache| E[(SQLite Local)]
+                    D -->|Dich noi dung| F[Gemini AI]
+                    D -->|TTS / GPS / Maps| G[Thiết bị người dùng]
+                </div>
+            </div>
+        </section>
+
+        <section id="muc-11" class="section">
+            <h2>11. Yêu cầu chức năng, phi chức năng và tiêu chí nghiệm thu</h2>
+            <h3>11.1. Yêu cầu chức năng (Functional Requirements)</h3>
+            <table>
+                <thead>
+                    <tr><th>Mã</th><th>Yêu cầu</th><th>Mô tả</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>FR-01</td><td>CRUD POI</td><td>Admin phải thêm/sửa/xóa/xem POI trên Web Admin.</td></tr>
+                    <tr><td>FR-02</td><td>Đồng bộ POI</td><td>Mobile phải lấy danh sách POI từ API và lưu vào SQLite local.</td></tr>
+                    <tr><td>FR-03</td><td>Hiển thị bản đồ</td><td>Mobile phải hiển thị pins POI trên bản đồ.</td></tr>
+                    <tr><td>FR-04</td><td>Quét geofence</td><td>Mobile phải quét GPS mỗi 5 giây và phát hiện POI hợp lệ.</td></tr>
+                    <tr><td>FR-05</td><td>Ưu tiên phát</td><td>Nếu nhiều POI trong vùng, chọn theo Priority rồi đến khoảng cách.</td></tr>
+                    <tr><td>FR-06</td><td>Cache bản dịch</td><td>App phải lưu bản dịch vào SQLite để dùng lại.</td></tr>
+                    <tr><td>FR-07</td><td>TTS</td><td>App phải phát âm thanh bằng engine mặc định của hệ điều hành.</td></tr>
+                    <tr><td>FR-08</td><td>Dừng audio</td><td>Người dùng phải dừng phát âm thanh đang chạy được.</td></tr>
+                    <tr><td>FR-09</td><td>Gửi analytics</td><td>App phải gửi log nghe lên API sau mỗi phiên nghe.</td></tr>
+                    <tr><td>FR-10</td><td>Analytics dashboard</td><td>Admin phải xem tổng lượt nghe và thời lượng trung bình theo POI.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>11.2. Yêu cầu phi chức năng (Non-Functional Requirements)</h3>
+            <table>
+                <thead>
+                    <tr><th>Mã</th><th>Yêu cầu</th><th>Mô tả</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>NFR-01</td><td>Khả dụng offline</td><td>Ứng dụng vẫn phải hoạt động với dữ liệu local khi mạng yếu.</td></tr>
+                    <tr><td>NFR-02</td><td>Dễ dùng</td><td>Người dùng mới vẫn thao tác được sau vài phút làm quen.</td></tr>
+                    <tr><td>NFR-03</td><td>Phản hồi hợp lý</td><td>Quy trình phát hiện geofence phải có độ trễ thấp, phù hợp demo thực địa.</td></tr>
+                    <tr><td>NFR-04</td><td>Bảo trì được</td><td>Cấu trúc chia lớp phải rõ giữa Mobile, API và Admin.</td></tr>
+                    <tr><td>NFR-05</td><td>Mở rộng được</td><td>Có thể thêm nhiều POI hơn và mở rộng analytics sau này.</td></tr>
+                    <tr><td>NFR-06</td><td>An toàn dữ liệu</td><td>Không lưu thông tin nhận diện cá nhân trực tiếp, dùng AnonymousSessionId.</td></tr>
+                </tbody>
+            </table>
+
+            <h3>11.3. Tiêu chí nghiệm thu</h3>
+            <ul>
+                <li>Admin tạo một POI mới và POI đó xuất hiện trên mobile sau lần đồng bộ kế tiếp.</li>
+                <li>Mobile hiển thị ít nhất toàn bộ các POI hiện có trong ảnh snapshot dữ liệu.</li>
+                <li>Khi thiết bị đi vào phạm vi 30m của POI, app tự động phát thuyết minh.</li>
+                <li>Nếu có bản dịch cache, app sử dụng lại mà không gọi AI lần nữa.</li>
+                <li>Khi bấm Stop, TTS dừng ngay và log vẫn được gửi về server.</li>
+                <li>Analytics trên Web Admin hiển thị đúng tổng lượt nghe và thời lượng trung bình theo POI.</li>
+                <li>Hệ thống vẫn hiển thị được dữ liệu local ngay cả khi API không truy cập được.</li>
+            </ul>
+
+            <h3>11.4. Kịch bản kiểm thử mẫu</h3>
+            <table>
+                <thead>
+                    <tr><th>TC</th><th>Kịch bản</th><th>Kết quả mong đợi</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>TC-01</td><td>Thêm mới POI trên Admin</td><td>POI lưu thành công vào SQL Server.</td></tr>
+                    <tr><td>TC-02</td><td>Mobile gọi GET /api/pois</td><td>Danh sách POI trả về đầy đủ và ghi vào SQLite.</td></tr>
+                    <tr><td>TC-03</td><td>Đi vào vùng của Ốc Oanh</td><td>App tự phát thuyết minh của OC-OANH.</td></tr>
+                    <tr><td>TC-04</td><td>Có 2 POI cùng trong vùng</td><td>App chọn POI có Priority thấp hơn.</td></tr>
+                    <tr><td>TC-05</td><td>Nghe xong một phiên audio</td><td>ListeningLog được lưu ở server với ListenAt hợp lệ.</td></tr>
+                    <tr><td>TC-06</td><td>Không có mạng khi mở app</td><td>App vẫn dùng dữ liệu local/backup để hiển thị.</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="muc-12" class="section">
+            <h2>12. Rủi ro, hạn chế và hướng phát triển</h2>
+            <h3>12.1. Rủi ro và hạn chế hiện tại</h3>
+            <div class="warn-box">
+                <strong>Hạn chế kỹ thuật cần ghi nhận trong đồ án:</strong>
+                hiện tại logic dịch AI đang được gọi trực tiếp từ mobile app, chưa đi qua backend,
+                nên chưa phải mô hình tối ưu nhất về bảo mật khóa API và kiểm soát chi phí.
+            </div>
+            <ul>
+                <li>Khóa AI đang nằm phía client nên có rủi ro bảo mật.</li>
+                <li>Logic geofence còn nằm nhiều trong UI thay vì tách hẳn thành service độc lập.</li>
+                <li>Analytics mới ở mức cơ bản, chưa có dashboard nhiều chiều.</li>
+                <li>Chưa có xác thực quản trị viên nâng cao.</li>
+                <li>Dữ liệu backup cứng trong app chỉ phù hợp giai đoạn demo hoặc fallback.</li>
+            </ul>
+
+            <h3>12.2. Hướng phát triển tiếp theo</h3>
+            <ul>
+                <li>Đưa translation AI về backend để bảo vệ API key.</li>
+                <li>Tách geofence engine thành service riêng để dễ test.</li>
+                <li>Bổ sung dashboard thời gian thực, biểu đồ theo ngày và theo ngôn ngữ.</li>
+                <li>Bổ sung đăng nhập và phân quyền cho quản trị viên.</li>
+                <li>Cho phép quản lý nhiều khu du lịch thay vì chỉ khu Vĩnh Khánh.</li>
+                <li>Tối ưu chiến lược cache với composite index hoặc unique theo <code>PoiId + LanguageCode</code>.</li>
+            </ul>
+
+            <h3>12.3. Kết luận</h3>
+            <p>
+                Ở trạng thái hiện tại, đồ án đã thể hiện được một hệ thống fullstack hoàn chỉnh ở mức học thuật và demo thực tế:
+                có quản trị dữ liệu, có API trung gian, có mobile app hoạt động theo vị trí, có cache offline, có TTS và có analytics.
+                Đây là một nền tảng đủ tốt để trình bày đồ án, đồng thời vẫn còn không gian mở rộng rõ ràng cho các phiên bản sau.
+            </p>
+        </section>
+
+        <div class="footer">
+            PRD VinhKhanhTourGuide Fullstack • HTML Full Version • Generated for đồ án hoàn chỉnh
         </div>
     </div>
 
-    <script type="module">
-        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-        mermaid.initialize({ startOnLoad: true, theme: 'forest' });
+    <script>
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav a');
+
+        function setActiveNav() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 120;
+                const sectionHeight = section.offsetHeight;
+                if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', setActiveNav);
+        window.addEventListener('load', setActiveNav);
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose'
+        });
     </script>
 </body>
 </html>
