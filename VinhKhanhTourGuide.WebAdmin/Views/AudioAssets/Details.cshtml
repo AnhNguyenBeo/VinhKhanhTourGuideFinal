@@ -1,0 +1,13 @@
+﻿@model VinhKhanhTourGuide.WebAdmin.Models.Tour
+
+<h2>Chi tiết Tour</h2>
+
+<div>
+    <p><strong>Code:</strong> @Model.Code</p>
+    <p><strong>Name:</strong> @Model.Name</p>
+    <p><strong>Description:</strong> @Model.Description</p>
+    <p><strong>Estimated:</strong> @Model.EstimatedMinutes phút</p>
+    <p><strong>Active:</strong> @Model.IsActive</p>
+</div>
+
+<a asp-action="Index">Back</a>

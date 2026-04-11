@@ -1,0 +1,33 @@
+﻿@model VinhKhanhTourGuide.WebAdmin.Models.Tour
+
+<h2>Tạo Tour</h2>
+
+<form asp-action="Create">
+    <div class="form-group">
+        <label>Code</label>
+        <input asp-for="Code" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Name</label>
+        <input asp-for="Name" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Description</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Estimated Minutes</label>
+        <input asp-for="EstimatedMinutes" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Active</label>
+        <input asp-for="IsActive" type="checkbox" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index">Back</a>
+</form>

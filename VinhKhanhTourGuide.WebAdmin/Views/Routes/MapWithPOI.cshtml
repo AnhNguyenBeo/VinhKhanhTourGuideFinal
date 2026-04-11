@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Route Map + POI";
+    var routeJson = ViewBag.RouteJson as string ?? "[]";
+    var poiJson = ViewBag.PoiJson as string ?? "[]";
+    var sessionId = ViewBag.SessionId as string ?? "";
+}
+
+<h2>Route Map + POI</h2>
+
+<form method="get" class="mb-3">
+    <div style="display:flex; gap:10px; margin-bottom:16px;">
+        <input name="sessionId" value="@sessionId" placeholder="Session ID" class="form-control" />
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a asp-action="MapWithPOI" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
+
+<div id="routeMap" style="height: 650px; border-radius: 12px; border:1px solid #dbe7ef;"></div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+
+<script>
+    const routeData = @Html.Raw(routeJson);
+    const poiData = @Html.Raw(poiJson);
+
+    const map = L.map('routeMap').setView([10.7608, 106.7032], 16);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    // ----- Heatmap Layer -----
+    if(routeData.length > 0){
+        const heatPoints = routeData.map(x => [x.latitude, x.longitude, 0.5]); // weight
+        L.heatLayer(heatPoints, { radius: 25, blur: 15, maxZoom: 18 }).addTo(map);
+    }
+
+    // ----- POI markers -----
+    poiData.forEach(p => {
+        L.marker([p.latitude, p.longitude], {icon: L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+            iconSize: [25, 25]
+        })})
+        .addTo(map)
+        .bindPopup(`<strong>${p.name}</strong><br/>ID: ${p.id}`);
+    });
+
+    // Fit map to show both POI and route points
+    const allPoints = routeData.map(x => [x.latitude, x.longitude]).concat(poiData.map(p => [p.latitude, p.longitude]));
+    if(allPoints.length > 0){
+        map.fitBounds(allPoints, { padding: [20, 20] });
+    }
+</script>

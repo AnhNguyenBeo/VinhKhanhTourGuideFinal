@@ -1,0 +1,32 @@
+﻿@model VinhKhanhTourGuide.WebAdmin.Models.AudioAsset
+
+<h2>Create Audio</h2>
+
+<form asp-action="Create">
+    <div class="form-group">
+        <label>POI</label>
+        <select asp-for="PoiId" asp-items="ViewBag.PoiList" class="form-control"></select>
+    </div>
+
+    <div class="form-group">
+        <label>Language</label>
+        <input asp-for="LanguageCode" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>Title</label>
+        <input asp-for="Title" class="form-control" />
+    </div>
+
+    <div class="form-group">
+        <label>File Path</label>
+        <input asp-for="FilePath" class="form-control" placeholder="/audio/en/abc.mp3" />
+    </div>
+
+    <div class="form-group">
+        <label>Duration (seconds)</label>
+        <input asp-for="DurationSeconds" class="form-control" />
+    </div>
+
+    <button class="btn btn-primary">Save</button>
+</form>

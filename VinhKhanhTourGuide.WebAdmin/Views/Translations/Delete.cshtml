@@ -1,0 +1,15 @@
+﻿@model VinhKhanhTourGuide.WebAdmin.Models.TranslationEntry
+
+<h2>Delete Translation</h2>
+
+<p>Bạn có chắc muốn xóa?</p>
+
+<div>
+    <strong>@Model.PoiId - @Model.LanguageCode</strong>
+</div>
+
+<form asp-action="Delete">
+    <input type="hidden" asp-for="Id" />
+    <button class="btn btn-danger">Delete</button>
+    <a asp-action="Index">Cancel</a>
+</form>

@@ -1,0 +1,57 @@
+﻿@model IEnumerable<VinhKhanhTourGuide.WebAdmin.Models.TranslationEntry>
+
+@{
+    ViewData["Title"] = "Translations";
+}
+
+<h2>Translations</h2>
+
+<!-- FILTER -->
+<form method="get" class="mb-3">
+    <div style="display:flex; gap:10px;">
+        <select name="poiId" class="form-control">
+            <option value="">-- All POI --</option>
+            @foreach (var p in ViewBag.PoiList)
+            {
+                <option value="@p.Id">@p.Name</option>
+            }
+        </select>
+
+        <input name="languageCode" placeholder="Language (en-US)" class="form-control" />
+
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a asp-action="Index" class="btn btn-secondary">Reset</a>
+    </div>
+</form>
+
+<p>
+    <a asp-action="Create" class="btn btn-success">+ Add Translation</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>POI</th>
+            <th>Language</th>
+            <th>Text</th>
+            <th>Approved</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.PoiId</td>
+                <td>@item.LanguageCode</td>
+                <td style="max-width:300px;">@item.TranslatedText</td>
+                <td>@item.IsApproved</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

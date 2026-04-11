@@ -1,0 +1,40 @@
+﻿@model IEnumerable<VinhKhanhTourGuide.WebAdmin.Models.RoutePoint>
+
+@{
+    ViewData["Title"] = "Route Points";
+}
+
+<h2>Route Points</h2>
+
+<form method="get" class="mb-3">
+    <div style="display:flex; gap:10px;">
+        <input name="sessionId" value="@ViewBag.SessionId" placeholder="Session ID" class="form-control" />
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a asp-action="Index" class="btn btn-secondary">Reset</a>
+        <a asp-action="Map" asp-route-sessionId="@ViewBag.SessionId" class="btn btn-success">View Map</a>
+    </div>
+</form>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Session ID</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Accuracy (m)</th>
+            <th>Recorded At</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.AnonymousSessionId</td>
+                <td>@item.Latitude</td>
+                <td>@item.Longitude</td>
+                <td>@item.AccuracyMeters</td>
+                <td>@item.RecordedAt.ToString("yyyy-MM-dd HH:mm:ss")</td>
+            </tr>
+        }
+    </tbody>
+</table>

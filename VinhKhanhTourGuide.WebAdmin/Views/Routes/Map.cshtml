@@ -1,0 +1,99 @@
+﻿@{
+    ViewData["Title"] = "Route Map";
+    var routeJson = ViewBag.RouteJson as string ?? "[]";
+    var sessionId = ViewBag.SessionId as string ?? "";
+}
+
+<h2>Route Map</h2>
+
+<form method="get" class="mb-3">
+    <div style="display:flex; gap:10px; margin-bottom:16px;">
+        <input name="sessionId" value="@sessionId" placeholder="Session ID" class="form-control" />
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a asp-action="Map" class="btn btn-secondary">Reset</a>
+        <a asp-action="Index" asp-route-sessionId="@sessionId" class="btn btn-outline-dark">View Table</a>
+    </div>
+</form>
+
+<div class="alert alert-info">
+    @if (!string.IsNullOrWhiteSpace(sessionId))
+    {
+        <span>Đang hiển thị tuyến di chuyển của session: <strong>@sessionId</strong></span>
+    }
+    else
+    {
+        <span>Đang hiển thị tất cả điểm GPS gần đây.</span>
+    }
+</div>
+
+<div id="routeMap" style="height: 650px; border-radius: 12px; overflow: hidden; border:1px solid #dbe7ef;"></div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+    const routeData = @Html.Raw(routeJson);
+
+    const map = L.map('routeMap').setView([10.7608, 106.7032], 16);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    if (routeData.length > 0) {
+        const latlngs = routeData.map(x => [x.latitude, x.longitude]);
+
+        const hasSingleSession = '@sessionId' !== '';
+
+        if (hasSingleSession) {
+            const polyline = L.polyline(latlngs, {
+                color: '#0ea5e9',
+                weight: 5,
+                opacity: 0.9
+            }).addTo(map);
+
+            L.marker(latlngs[0]).addTo(map)
+                .bindPopup('Điểm bắt đầu');
+
+            L.marker(latlngs[latlngs.length - 1]).addTo(map)
+                .bindPopup('Điểm kết thúc');
+
+            latlngs.forEach((point, index) => {
+                const item = routeData[index];
+                L.circleMarker(point, {
+                    radius: 4,
+                    color: '#ef4444',
+                    fillColor: '#ef4444',
+                    fillOpacity: 0.8
+                })
+                .addTo(map)
+                .bindPopup(`
+                    <strong>Session:</strong> ${item.anonymousSessionId}<br/>
+                    <strong>Time:</strong> ${item.recordedAt}<br/>
+                    <strong>Accuracy:</strong> ${item.accuracyMeters ?? 'N/A'} m
+                `);
+            });
+
+            map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+        } else {
+            latlngs.forEach((point, index) => {
+                const item = routeData[index];
+                L.circleMarker(point, {
+                    radius: 5,
+                    color: '#06b6d4',
+                    fillColor: '#22d3ee',
+                    fillOpacity: 0.7
+                })
+                .addTo(map)
+                .bindPopup(`
+                    <strong>Session:</strong> ${item.anonymousSessionId}<br/>
+                    <strong>Time:</strong> ${item.recordedAt}<br/>
+                    <strong>Accuracy:</strong> ${item.accuracyMeters ?? 'N/A'} m
+                `);
+            });
+
+            map.fitBounds(latlngs, { padding: [20, 20] });
+        }
+    }
+</script>

@@ -1,0 +1,37 @@
+﻿@model IEnumerable<VinhKhanhTourGuide.WebAdmin.Models.AudioAsset>
+
+<h2>Audio Assets</h2>
+
+<p>
+    <a asp-action="Create" class="btn btn-success">+ Add Audio</a>
+</p>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>POI</th>
+            <th>Lang</th>
+            <th>Title</th>
+            <th>File</th>
+            <th>Duration</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.PoiId</td>
+                <td>@item.LanguageCode</td>
+                <td>@item.Title</td>
+                <td>@item.FilePath</td>
+                <td>@item.DurationSeconds s</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
