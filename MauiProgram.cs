@@ -25,6 +25,7 @@ namespace VinhKhanhTourGuide
             builder.Services.AddSingleton<VinhKhanhTourGuide.Data.AppDbContext>();
             // Đăng ký Views
             builder.Services.AddTransient<VinhKhanhTourGuide.Views.MapPage>();
+            builder.Services.AddSingleton<VinhKhanhTourGuide.Services.GeofenceService>();
             return builder.Build();
         }
     }
