@@ -304,10 +304,9 @@
                                                 Text="📍"
                                                 FontSize="13"
                                                 TextColor="#F97316" />
-                                            <Label
-                                                Text="Tap để xem chi tiết"
-                                                FontSize="14"
-                                                TextColor="#F97316" />
+                                            <Label Text="{Binding DistanceText}"
+                                                    FontSize="14"
+                                                    TextColor="#F97316" />
                                         </HorizontalStackLayout>
                                     </VerticalStackLayout>
 

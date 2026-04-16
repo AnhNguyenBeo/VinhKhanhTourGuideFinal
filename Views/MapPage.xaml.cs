@@ -115,12 +115,20 @@ namespace VinhKhanhTourGuide.Views
 
                     if (userLocation != null)
                     {
-                        _poiList = _poiList.OrderBy(p =>
-                            Location.CalculateDistance(
+                        foreach (var poi in _poiList)
+                        {
+                            double distanceKm = Location.CalculateDistance(
                                 userLocation,
-                                new Location(p.Latitude, p.Longitude),
-                                DistanceUnits.Kilometers)
-                        ).ToList();
+                                new Location(poi.Latitude, poi.Longitude),
+                                DistanceUnits.Kilometers);
+
+                            poi.Distance = distanceKm * 1000; // mét
+                        }
+
+                        // sort theo khoảng cách gần nhất
+                        _poiList = _poiList
+                            .OrderBy(p => p.Distance)
+                            .ToList();
                     }
                 }
                 catch
