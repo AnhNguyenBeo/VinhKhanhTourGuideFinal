@@ -40,20 +40,6 @@
                             FontSize="20"
                             Clicked="OnBackClicked" />
                 </Border>
-
-                <!-- distance badge -->
-                <Border BackgroundColor="#FDFDFD"
-                        Padding="14,8"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 18"
-                        HorizontalOptions="End"
-                        VerticalOptions="End"
-                        Margin="0,0,18,18">
-                    <Label Text="50m away"
-                           TextColor="#7C2D12"
-                           FontSize="14"
-                           FontAttributes="Bold" />
-                </Border>
             </Grid>
 
             <!-- content -->
@@ -74,7 +60,7 @@
 
                 <!-- Play narration -->
                 <Button x:Name="PlayAudioButton"
-                        Text="▶  Play narration"
+                        Text="▶  Nghe thuyết minh"
                         BackgroundColor="#F97316"
                         TextColor="White"
                         FontSize="21"
@@ -84,7 +70,7 @@
                         Clicked="OnPlayAudioClicked" />
 
                 <!-- Navigate -->
-                <Button Text="➤  Navigate"
+                <Button Text="➤  Chỉ đường"
                         BackgroundColor="White"
                         TextColor="#7C2D12"
                         FontSize="21"

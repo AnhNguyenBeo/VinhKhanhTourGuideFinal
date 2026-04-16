@@ -1,3 +1,4 @@
+﻿using Microsoft.Extensions.FileProviders;
 using Microsoft.EntityFrameworkCore;
 using VinhKhanhTourGuide.Api.Data;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 app.UseStaticFiles();
+var webAdminImagesPath = Path.Combine(builder.Environment.ContentRootPath, "..", "VinhKhanhTourGuide.WebAdmin", "wwwroot", "images");
+
+if (Directory.Exists(webAdminImagesPath))
+{
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(webAdminImagesPath),
+        RequestPath = "/images" // Bất cứ khi nào App gọi "/images/...", API sẽ tự chạy sang WebAdmin lấy
+    });
+}
 app.UseAuthorization();
 
 app.MapControllers();

@@ -32,18 +32,18 @@ namespace VinhKhanhTourGuide.Views
 
         private CancellationTokenSource? _waveCts;
 
-        private double _bottomSheetStartTranslationY = 260;
+        private double _bottomSheetStartTranslationY = 320;
         private const double BottomSheetExpandedY = 0;
-        private const double BottomSheetCollapsedY = 260;
-        private const double BottomSheetVisibleCollapsedHeight = 360;
+        private const double BottomSheetCollapsedY = 320;
+        private const double BottomSheetVisibleCollapsedHeight = 300;
 
         public MapPage(
-     TtsService ttsService,
-     TranslationService translationService,
-     AppDbContext dbContext,
-     GeofenceService geofenceService,
-     PremiumService premiumService,
-     PurchaseService purchaseService)
+                 TtsService ttsService,
+                 TranslationService translationService,
+                 AppDbContext dbContext,
+                 GeofenceService geofenceService,
+                 PremiumService premiumService,
+                 PurchaseService purchaseService)
         {
             InitializeComponent();
 
@@ -83,7 +83,7 @@ namespace VinhKhanhTourGuide.Views
 
                 _poiList = await _dbContext.GetPoisAsync();
 
-                LocationCountLabel.Text = $"{_poiList.Count} locations available";
+                LocationCountLabel.Text = $"Tìm thấy {_poiList.Count} quán ăn";
                 PremiumBanner.IsVisible = !_premiumService.IsPremium();
                 NowPlayingCard.IsVisible = false;
                 StopAudioBtn.IsVisible = false;
@@ -96,8 +96,6 @@ namespace VinhKhanhTourGuide.Views
 
                 // Bottom sheet ban đầu ở trạng thái thu gọn
                 BottomSheet.TranslationY = BottomSheetCollapsedY;
-
-                await DisplayAlert("Hệ thống", $"Đã tải được {_poiList.Count} địa điểm.", "OK");
 
                 if (_poiList.Count == 0)
                 {
@@ -209,14 +207,25 @@ namespace VinhKhanhTourGuide.Views
 
             if (string.IsNullOrEmpty(speechText))
             {
+                // Cố gắng dịch thử
                 speechText = await _translationService.TranslateAsync(targetPoi.Description_VN, lang);
-                await _dbContext.SaveCacheAsync(new TranslationCache
+
+                // KIỂM TRA LỖI: Nếu API rớt mạng (null) hoặc trả về chuỗi báo lỗi, dùng luôn tiếng Việt
+                if (string.IsNullOrEmpty(speechText) || speechText.StartsWith("Translation error"))
                 {
-                    PoiId = targetPoi.Id,
-                    LanguageCode = lang,
-                    TranslatedText = speechText,
-                    CreatedAt = DateTime.Now
-                });
+                    speechText = targetPoi.Description_VN;
+                }
+                else
+                {
+                    // Nếu dịch thành công trơn tru thì mới lưu vào Database để xài lại
+                    await _dbContext.SaveCacheAsync(new TranslationCache
+                    {
+                        PoiId = targetPoi.Id,
+                        LanguageCode = lang,
+                        TranslatedText = speechText,
+                        CreatedAt = DateTime.Now
+                    });
+                }
             }
 
             _listenTimer.Restart();

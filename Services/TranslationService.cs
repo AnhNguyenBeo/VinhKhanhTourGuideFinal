@@ -10,7 +10,7 @@ namespace VinhKhanhTourGuide.Services
     {
         private readonly HttpClient _httpClient;
 
-        private const string GeminiApiKey = "AIzaSyDcgq2u2Or2TBXc0gmIAVF67YbeSRt1fno";
+        private const string GeminiApiKey = " ";
 
         public TranslationService()
         {
@@ -38,8 +38,7 @@ namespace VinhKhanhTourGuide.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    string googleError = await response.Content.ReadAsStringAsync();
-                    return $"Translation error. Google báo lỗi: {googleError}";
+                    return null;
                 }
 
                 var responseJson = await response.Content.ReadAsStringAsync();

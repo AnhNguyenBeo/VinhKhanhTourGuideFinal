@@ -9,7 +9,7 @@
     Title="VinhKhanhTourGuide">
 
     <ShellContent
-        Title="Map POC"
+        Title="VinhKhanhTourGuide"
         ContentTemplate="{DataTemplate views:MapPage}"
         Route="MapPage" />
 
