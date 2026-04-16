@@ -14,6 +14,11 @@ namespace VinhKhanhTourGuide.Models
         public double Longitude { get; set; }
         public string Description_VN { get; set; }
         public int GeofenceRadius { get; set; }
+        public double Distance { get; set; }
+        public string DistanceText =>
+    Distance < 1000
+        ? $"{Distance:F0} m"
+        : $"{Distance / 1000:F1} km";
 
         // TÍNH NĂNG MỚI: Mức ưu tiên (Priority)
         public int Priority { get; set; }
