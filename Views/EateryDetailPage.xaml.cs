@@ -23,6 +23,10 @@ public partial class EateryDetailPage : ContentPage
 
         BindingContext = _poi;
     }
+    private async void OnBackClicked(object sender, EventArgs e)
+    {
+        await Navigation.PopAsync();
+    }
 
     private async void OnPlayAudioClicked(object sender, EventArgs e)
     {

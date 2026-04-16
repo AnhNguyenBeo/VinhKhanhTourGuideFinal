@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Diagnostics;
 using Microsoft.Maui.Controls.Maps;
-using Microsoft.Maui.Maps;
+using Microsoft.Maui.Devices.Sensors;
 using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Maps;
+using VinhKhanhTourGuide.Data;
 using VinhKhanhTourGuide.Models;
 using VinhKhanhTourGuide.Services;
-using VinhKhanhTourGuide.Data;
-using Microsoft.Maui.Devices.Sensors;
-using System.Diagnostics;
 
 namespace VinhKhanhTourGuide.Views
 {
@@ -20,22 +20,40 @@ namespace VinhKhanhTourGuide.Views
         private readonly TranslationService _translationService;
         private readonly AppDbContext _dbContext;
         private readonly GeofenceService _geofenceService;
+        private readonly PremiumService _premiumService;
+        private readonly PurchaseService _purchaseService;
 
         private List<Poi> _poiList = new();
         private bool _isSpeaking = false;
-        private Stopwatch _listenTimer = new Stopwatch();
-        private Location _currentLocation;
-        private Poi _currentListeningPoi;
+        private readonly Stopwatch _listenTimer = new();
 
-        public MapPage(TtsService ttsService, TranslationService translationService, AppDbContext dbContext, GeofenceService geofenceService)
+        private Location? _currentLocation;
+        private Poi? _currentListeningPoi;
+
+        private CancellationTokenSource? _waveCts;
+
+        private double _bottomSheetStartTranslationY = 260;
+        private const double BottomSheetExpandedY = 0;
+        private const double BottomSheetCollapsedY = 260;
+        private const double BottomSheetVisibleCollapsedHeight = 360;
+
+        public MapPage(
+     TtsService ttsService,
+     TranslationService translationService,
+     AppDbContext dbContext,
+     GeofenceService geofenceService,
+     PremiumService premiumService,
+     PurchaseService purchaseService)
         {
             InitializeComponent();
+
             _ttsService = ttsService;
             _translationService = translationService;
             _dbContext = dbContext;
             _geofenceService = geofenceService;
+            _premiumService = premiumService;
+            _purchaseService = purchaseService;
 
-            // Đăng ký lắng nghe sự kiện từ Service
             _geofenceService.PoiDetected += OnPoiDetected;
         }
 
@@ -49,7 +67,6 @@ namespace VinhKhanhTourGuide.Views
         {
             try
             {
-                // 1. Kiểm tra và xin quyền vị trí
                 var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
                 if (status != PermissionStatus.Granted)
                 {
@@ -64,42 +81,55 @@ namespace VinhKhanhTourGuide.Views
 
                 GeofenceStatusLabel.Text = "Đang kết nối API và tải dữ liệu...";
 
-                // 2. Kéo data từ SQL Server (API) hoặc lấy từ SQLite local
                 _poiList = await _dbContext.GetPoisAsync();
 
-                await DisplayAlert("Hệ thống", $"Đã tải được {_poiList.Count} địa điểm từ máy chủ.", "OK");
+                LocationCountLabel.Text = $"{_poiList.Count} locations available";
+                PremiumBanner.IsVisible = !_premiumService.IsPremium();
+                NowPlayingCard.IsVisible = false;
+                StopAudioBtn.IsVisible = false;
+                StatusPill.IsVisible = true;
 
-                if (_poiList == null || _poiList.Count == 0)
+                StopWaveAnimation();
+
+                // Map chỉ cao đến mép trên của danh sách khi chưa vuốt
+                MapContainer.Margin = new Thickness(0, 0, 0, BottomSheetVisibleCollapsedHeight);
+
+                // Bottom sheet ban đầu ở trạng thái thu gọn
+                BottomSheet.TranslationY = BottomSheetCollapsedY;
+
+                await DisplayAlert("Hệ thống", $"Đã tải được {_poiList.Count} địa điểm.", "OK");
+
+                if (_poiList.Count == 0)
                 {
                     GeofenceStatusLabel.Text = "Không có dữ liệu quán ăn.";
                     return;
                 }
 
-                // =========================================================
-                // BƯỚC BỔ SUNG: LẤY VỊ TRÍ HIỆN TẠI VÀ SẮP XẾP QUÁN GẦN NHẤT
-                // =========================================================
                 try
                 {
                     GeofenceStatusLabel.Text = "Đang định vị để sắp xếp quán ăn...";
 
-                    // Lấy vị trí hiện tại của user
                     var userLocation = await Geolocation.Default.GetLastKnownLocationAsync()
-                                    ?? await Geolocation.Default.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Medium, TimeSpan.FromSeconds(3)));
+                                      ?? await Geolocation.Default.GetLocationAsync(
+                                          new GeolocationRequest(
+                                              GeolocationAccuracy.Medium,
+                                              TimeSpan.FromSeconds(3)));
 
                     if (userLocation != null)
                     {
-                        // Sắp xếp danh sách _poiList theo khoảng cách tăng dần
                         _poiList = _poiList.OrderBy(p =>
-                            Location.CalculateDistance(userLocation, new Location(p.Latitude, p.Longitude), DistanceUnits.Kilometers)
+                            Location.CalculateDistance(
+                                userLocation,
+                                new Location(p.Latitude, p.Longitude),
+                                DistanceUnits.Kilometers)
                         ).ToList();
                     }
                 }
-                catch (Exception)
+                catch
                 {
-                    // Nếu mất sóng GPS hoặc lỗi, cứ bỏ qua và hiển thị list mặc định, không làm crash app
+                    // bỏ qua lỗi GPS tạm thời
                 }
-                // =========================================================
-                // 3. Hiển thị Pins (Cờ) lên bản đồ
+
                 VinhKhanhMap.Pins.Clear();
                 foreach (var poi in _poiList)
                 {
@@ -113,16 +143,14 @@ namespace VinhKhanhTourGuide.Views
                     VinhKhanhMap.Pins.Add(pin);
                 }
 
-                // 4. Di chuyển camera bản đồ đến quán đầu tiên
                 var centerLocation = new Location(_poiList[0].Latitude, _poiList[0].Longitude);
-                VinhKhanhMap.MoveToRegion(MapSpan.FromCenterAndRadius(centerLocation, Distance.FromKilometers(0.5)));
+                VinhKhanhMap.MoveToRegion(
+                    MapSpan.FromCenterAndRadius(centerLocation, Distance.FromKilometers(0.5)));
 
-                // 5. Đổ dữ liệu vào CollectionView dưới đáy màn hình
                 EateryList.ItemsSource = _poiList;
 
-                GeofenceStatusLabel.Text = $"Radar đang quét quanh {_poiList.Count} quán...";
+                GeofenceStatusLabel.Text = $"Radar đang quét {_poiList.Count} quán...";
 
-                // Kích hoạt Radar từ tầng Service
                 _geofenceService.StartRadar(_poiList);
             }
             catch (Exception ex)
@@ -134,28 +162,36 @@ namespace VinhKhanhTourGuide.Views
         private async void OnEaterySelected(object sender, SelectionChangedEventArgs e)
         {
             if (e.CurrentSelection.Count == 0) return;
+
             var selectedPoi = e.CurrentSelection[0] as Poi;
             ((CollectionView)sender).SelectedItem = null;
 
-            await Navigation.PushAsync(new EateryDetailPage(selectedPoi, _translationService, _ttsService, _dbContext));
+            if (selectedPoi == null) return;
+
+            await Navigation.PushAsync(
+                new EateryDetailPage(selectedPoi, _translationService, _ttsService, _dbContext));
         }
 
-        // HÀM NÀY SẼ CHẠY KHI GEOFENCESERVICE PHÁT HIỆN NGƯỜI DÙNG VÀO VÙNG QUÁN ĂN
-        private async void OnPoiDetected(object sender, (Poi targetPoi, Location userLocation) e)
+        private async void OnPoiDetected(object? sender, (Poi targetPoi, Location userLocation) e)
         {
             if (_isSpeaking) return;
 
             _isSpeaking = true;
-            _geofenceService.SetProcessingState(true); // Khóa radar lại để tránh spam quét
+            _geofenceService.SetProcessingState(true);
 
             var targetPoi = e.targetPoi;
             _currentLocation = e.userLocation;
             _currentListeningPoi = targetPoi;
 
-            // Cập nhật UI (Vẽ vòng tròn đỏ, hiện nút Stop)
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 StopAudioBtn.IsVisible = true;
+                NowPlayingCard.IsVisible = true;
+                StatusPill.IsVisible = false;
+
+                NowPlayingNameLabel.Text = targetPoi.Name ?? "";
+                StartWaveAnimation();
+
                 VinhKhanhMap.MapElements.Clear();
                 VinhKhanhMap.MapElements.Add(new Circle
                 {
@@ -165,37 +201,44 @@ namespace VinhKhanhTourGuide.Views
                     StrokeWidth = 5,
                     FillColor = Color.FromArgb("#44FF0000")
                 });
-                GeofenceStatusLabel.Text = $"📍 Đang thuyết minh: {targetPoi.Name}...";
             });
 
-            // Xử lý dịch thuật (Gemini)
             string lang = CultureInfo.CurrentUICulture.Name;
             var cache = await _dbContext.GetCacheAsync(targetPoi.Id, lang);
-            string speechText = cache?.TranslatedText;
+            string speechText = cache?.TranslatedText ?? string.Empty;
 
             if (string.IsNullOrEmpty(speechText))
             {
                 speechText = await _translationService.TranslateAsync(targetPoi.Description_VN, lang);
-                await _dbContext.SaveCacheAsync(new TranslationCache { PoiId = targetPoi.Id, LanguageCode = lang, TranslatedText = speechText, CreatedAt = DateTime.Now });
+                await _dbContext.SaveCacheAsync(new TranslationCache
+                {
+                    PoiId = targetPoi.Id,
+                    LanguageCode = lang,
+                    TranslatedText = speechText,
+                    CreatedAt = DateTime.Now
+                });
             }
 
-            _listenTimer.Restart(); // BẮT ĐẦU BẤM GIỜ
+            _listenTimer.Restart();
 
-            // Đọc âm thanh (TTS)
             await _ttsService.SpeakAsync(speechText);
 
             SendAnalyticsData();
 
-            // Kết thúc thuyết minh, dọn dẹp UI
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 StopAudioBtn.IsVisible = false;
+                NowPlayingCard.IsVisible = false;
+                StatusPill.IsVisible = true;
+
                 VinhKhanhMap.MapElements.Clear();
-                GeofenceStatusLabel.Text = "Radar đang tiếp tục quét...";
+                GeofenceStatusLabel.Text = "Quét điểm gần bạn...";
+
+                StopWaveAnimation();
             });
 
             _isSpeaking = false;
-            _geofenceService.SetProcessingState(false); // Mở khóa radar cho quét tiếp
+            _geofenceService.SetProcessingState(false);
         }
 
         private void OnStopAudioClicked(object sender, EventArgs e)
@@ -205,21 +248,29 @@ namespace VinhKhanhTourGuide.Views
             SendAnalyticsData();
 
             StopAudioBtn.IsVisible = false;
+            NowPlayingCard.IsVisible = false;
+            StatusPill.IsVisible = true;
+
             VinhKhanhMap.MapElements.Clear();
-            GeofenceStatusLabel.Text = "Đã dừng thuyết minh.";
+            GeofenceStatusLabel.Text = "Quét điểm gần bạn...";
             _isSpeaking = false;
 
-            // Đảm bảo mở khóa radar nếu người dùng chủ động bấm Stop
             _geofenceService.SetProcessingState(false);
+            StopWaveAnimation();
+        }
+
+        private void OnStopAudioTapped(object sender, TappedEventArgs e)
+        {
+            OnStopAudioClicked(sender, EventArgs.Empty);
         }
 
         private void SendAnalyticsData()
         {
-            if (_currentListeningPoi == null || !_listenTimer.IsRunning) return;
+            if (_currentListeningPoi == null || _currentLocation == null || !_listenTimer.IsRunning)
+                return;
 
             _listenTimer.Stop();
 
-            // Lấy hoặc tạo Mã thiết bị ẩn danh (Guid)
             string sessionId = Preferences.Default.Get("SessionId", "");
             if (string.IsNullOrEmpty(sessionId))
             {
@@ -227,7 +278,6 @@ namespace VinhKhanhTourGuide.Views
                 Preferences.Default.Set("SessionId", sessionId);
             }
 
-            // Đóng gói dữ liệu
             var log = new ListeningLog
             {
                 PoiId = _currentListeningPoi.Id,
@@ -237,10 +287,142 @@ namespace VinhKhanhTourGuide.Views
                 Longitude = _currentLocation.Longitude
             };
 
-            // Gửi ngầm (không dùng await để tránh làm đơ giao diện)
             _ = _dbContext.SendAnalyticsAsync(log);
 
-            _currentListeningPoi = null; // Reset lại
+            _currentListeningPoi = null;
+        }
+
+        private async Task BuyFullPackageAsync()
+        {
+            bool confirm = await DisplayAlert(
+                "Mở khóa toàn bộ khu ẩm thực",
+                "Bạn có muốn mua gói thuyết minh tự động cho tất cả quán không?",
+                "Mua ngay",
+                "Để sau");
+
+            if (!confirm) return;
+
+            GeofenceStatusLabel.Text = "Đang xử lý thanh toán...";
+
+            bool success = await _purchaseService.PurchaseFullPackageAsync();
+
+            if (success)
+            {
+                await _dbContext.ReloadAsync();
+                await SetupMainUiAsync();
+                await DisplayAlert("Thành công", "Đã mở khóa toàn bộ quán ăn!", "OK");
+            }
+            else
+            {
+                await DisplayAlert("Thất bại", "Thanh toán chưa thành công, vui lòng thử lại.", "OK");
+            }
+        }
+
+        private async void OnPremiumBannerTapped(object sender, EventArgs e)
+        {
+            await BuyFullPackageAsync();
+        }
+
+        // Bottom sheet drag
+        private async void OnBottomSheetPanUpdated(object sender, PanUpdatedEventArgs e)
+        {
+            switch (e.StatusType)
+            {
+                case GestureStatus.Started:
+                    _bottomSheetStartTranslationY = BottomSheet.TranslationY;
+                    break;
+
+                case GestureStatus.Running:
+                    double newY = _bottomSheetStartTranslationY + e.TotalY;
+
+                    newY = Math.Max(
+                        BottomSheetExpandedY,
+                        Math.Min(BottomSheetCollapsedY, newY));
+
+                    BottomSheet.TranslationY = newY;
+                    break;
+
+                case GestureStatus.Completed:
+                case GestureStatus.Canceled:
+                    double middle = (BottomSheetCollapsedY + BottomSheetExpandedY) / 2;
+
+                    double targetY = BottomSheet.TranslationY > middle
+                        ? BottomSheetCollapsedY
+                        : BottomSheetExpandedY;
+
+                    await BottomSheet.TranslateTo(0, targetY, 180, Easing.SinOut);
+                    break;
+            }
+        }
+
+        // Wave animation
+        private void StartWaveAnimation()
+        {
+            StopWaveAnimation();
+
+            _waveCts = new CancellationTokenSource();
+            var token = _waveCts.Token;
+
+            _ = AnimateWaveAsync(Wave1, 0.65, 1.3, 20, token);
+            _ = AnimateWaveAsync(Wave2, 0.8, 1.6, 240, token);
+            _ = AnimateWaveAsync(Wave3, 0.6, 1.4, 120, token);
+            _ = AnimateWaveAsync(Wave4, 0.6, 1.55, 180, token);
+        }
+
+        private void StopWaveAnimation()
+        {
+            if (_waveCts != null)
+            {
+                _waveCts.Cancel();
+                _waveCts.Dispose();
+                _waveCts = null;
+            }
+
+            ResetWaveBar(Wave1);
+            ResetWaveBar(Wave2);
+            ResetWaveBar(Wave3);
+            ResetWaveBar(Wave4);
+        }
+
+        private static void ResetWaveBar(BoxView bar)
+        {
+            bar.ScaleY = 1;
+            bar.Opacity = 1;
+        }
+
+        private async Task AnimateWaveAsync(
+            VisualElement bar,
+            double minScale,
+            double maxScale,
+            int initialDelayMs,
+            CancellationToken token)
+        {
+            try
+            {
+                if (initialDelayMs > 0)
+                    await Task.Delay(initialDelayMs, token);
+
+                while (!token.IsCancellationRequested)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await Task.WhenAll(
+                            bar.ScaleYTo(maxScale, 220, Easing.SinInOut),
+                            bar.FadeTo(0.9, 220, Easing.SinInOut)
+                        );
+
+                        await Task.WhenAll(
+                            bar.ScaleYTo(minScale, 220, Easing.SinInOut),
+                            bar.FadeTo(1.0, 220, Easing.SinInOut)
+                        );
+                    });
+
+                    await Task.Delay(80, token);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+            }
         }
     }
 }

@@ -1,115 +1,336 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:maps="http://schemas.microsoft.com/dotnet/2021/maui/maps"
-             x:Class="VinhKhanhTourGuide.Views.MapPage"
-             Title="Phố ẩm thực Vĩnh Khánh">
+<ContentPage
+    x:Class="VinhKhanhTourGuide.Views.MapPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:maps="clr-namespace:Microsoft.Maui.Controls.Maps;assembly=Microsoft.Maui.Controls.Maps"
+    xmlns:model="clr-namespace:VinhKhanhTourGuide.Models"
+    BackgroundColor="#F7F0E3"
+    NavigationPage.HasNavigationBar="False">
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="4*" />
-            <RowDefinition Height="6*" />
-        </Grid.RowDefinitions>
 
-        <maps:Map x:Name="VinhKhanhMap" 
-                  Grid.Row="0"
-                  IsShowingUser="True" 
-                  IsVisible="True" />
+        <!-- MAP -->
+        <Grid x:Name="MapContainer" ZIndex="0">
+            <maps:Map
+                x:Name="VinhKhanhMap"
+                IsShowingUser="True"
+                MapType="Street" />
 
-        <Border Grid.Row="0"
-                VerticalOptions="End" 
-                HorizontalOptions="Center" 
-                Margin="10" 
-                Padding="10,5" 
-                BackgroundColor="#CC000000" 
-                StrokeShape="RoundRectangle 20" 
-                ZIndex="10">
-            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
-                <Label x:Name="GeofenceStatusLabel" 
-                       Text="Radar đang quét Geofencing..." 
-                       TextColor="White" 
-                       FontSize="12" 
-                       FontAttributes="Bold" 
-                       VerticalOptions="Center"/>
+            <!-- TOP OVERLAY -->
+            <VerticalStackLayout
+                Padding="24,20,24,0"
+                Spacing="14"
+                VerticalOptions="Start"
+                ZIndex="10"
+                InputTransparent="False">
 
-                <Button x:Name="StopAudioBtn" 
-                        Text="⏹" 
-                        TextColor="White" 
-                        BackgroundColor="Red" 
-                        CornerRadius="15" 
-                        WidthRequest="30" 
-                        HeightRequest="30" 
-                        Padding="0" 
-                        IsVisible="False" 
-                        Clicked="OnStopAudioClicked"/>
-            </HorizontalStackLayout>
-        </Border>
+                <!-- Status pill -->
+                <Border
+                    x:Name="StatusPill"
+                    BackgroundColor="#FCFCFB"
+                    Stroke="#F3D8BF"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 28"
+                    Padding="10,6"
+                    HorizontalOptions="Center">
+                    <HorizontalStackLayout
+                        HorizontalOptions="Center"
+                        Spacing="8">
+                        <Label
+                            Text="◎"
+                            TextColor="#F97316"
+                            FontSize="10"
+                            VerticalOptions="Center" />
+                        <Label
+                            x:Name="GeofenceStatusLabel"
+                            Text="Scanning nearby locations..."
+                            TextColor="#7C2D12"
+                            FontSize="14"
+                            HorizontalTextAlignment="Center"
+                            LineBreakMode="TailTruncation" />
+                    </HorizontalStackLayout>
+                </Border>
 
-        <CollectionView x:Name="EateryList" 
-                        Grid.Row="1"
-                        Margin="10" 
-                        SelectionMode="Single" 
-                        SelectionChanged="OnEaterySelected">
+                <!-- Premium banner -->
+                <Border
+                    x:Name="PremiumBanner"
+                    IsVisible="False"
+                    InputTransparent="False"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="12,10"
+                    HorizontalOptions="Center"
+                    MaximumWidthRequest="320">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#FF5F00" Offset="0.0" />
+                            <GradientStop Color="#FF8C00" Offset="0.6" />
+                            <GradientStop Color="#FFD400" Offset="0.95" />
+                        </LinearGradientBrush>
+                    </Border.Background>
 
-            <CollectionView.Header>
-                <VerticalStackLayout Margin="0,0,0,10">
-                    <Label Text="Chào mừng bạn đến Vĩnh Khánh" FontSize="20" FontAttributes="Bold" TextColor="Purple" />
-                    <Label Text="Khám phá ẩm thực Quận 4" FontSize="14" TextColor="Gray"/>
-                </VerticalStackLayout>
-            </CollectionView.Header>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnPremiumBannerTapped" />
+                    </Border.GestureRecognizers>
 
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Padding="5,5,5,10">
-                        <Border StrokeShape="RoundRectangle 15" 
-                                StrokeThickness="1" 
-                                Stroke="LightGray" 
-                                BackgroundColor="White" 
-                                Padding="10">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="14">
+                        <VerticalStackLayout
+                            Spacing="1"
+                            VerticalOptions="Center">
+                            <Label
+                                Text="Unlock experience"
+                                TextColor="White"
+                                FontSize="18"
+                                FontAttributes="Bold" />
+                            <Label
+                                Text="Auto narration for all restaurants"
+                                TextColor="White"
+                                FontSize="12"
+                                FontAttributes="Bold" />
+                        </VerticalStackLayout>
 
-                            <Grid ColumnDefinitions="70, *, Auto" 
-                                  ColumnSpacing="15" 
-                                  VerticalOptions="Center">
+                        <Border
+                            Grid.Column="1"
+                            BackgroundColor="White"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 10"
+                            Padding="8"
+                            VerticalOptions="Center">
+                            <Label
+                                Text="10,000 VND"
+                                TextColor="#EA580C"
+                                FontSize="16"
+                                FontAttributes="Bold" />
+                        </Border>
+                    </Grid>
+                </Border>
 
-                                <Border Grid.Column="0" 
-                                        StrokeShape="RoundRectangle 10" 
-                                        StrokeThickness="0" 
-                                        WidthRequest="70" 
-                                        HeightRequest="70" 
-                                        Padding="0">
-                                    <Image Source="{Binding ImageName}" Aspect="AspectFill" />
-                                </Border>
+                <!-- Now playing -->
+                <Border
+                    x:Name="NowPlayingCard"
+                    IsVisible="False"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 14"
+                    Padding="18,12,14,12"
+                    Margin="0,220,0,0"
+                    MaximumWidthRequest="300"
+                    HorizontalOptions="Center">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="#FF5F00" Offset="0.0" />
+                            <GradientStop Color="#FF8C00" Offset="0.7" />
+                        </LinearGradientBrush>
+                    </Border.Background>
 
-                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                                    <Label Text="{Binding Name}" 
-                                           FontSize="16" 
-                                           FontAttributes="Bold" 
-                                           TextColor="Black"/>
-                                    <Label Text="Khu ẩm thực Quận 4" 
-                                           FontSize="12" 
-                                           TextColor="Gray" />
-                                </VerticalStackLayout>
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14">
 
-                                <Border Grid.Column="2"
-                                        StrokeShape="RoundRectangle 15"
-                                        StrokeThickness="0"
-                                        BackgroundColor="#8e44ad"
-                                        VerticalOptions="Center"
-                                        Padding="15,8"
-                                        WidthRequest="85">
-                                    <Label Text="Chi tiết"
-                                           TextColor="White"
-                                           FontSize="12"
-                                           FontAttributes="Bold"
-                                           HorizontalOptions="Center"
-                                           VerticalOptions="Center" />
-                                </Border>
+                        <HorizontalStackLayout
+                            VerticalOptions="Center"
+                            Spacing="2">
+                            <BoxView
+                                x:Name="Wave1"
+                                WidthRequest="4"
+                                HeightRequest="20"
+                                CornerRadius="1"
+                                Color="White"
+                                VerticalOptions="End" />
+                            <BoxView
+                                x:Name="Wave2"
+                                WidthRequest="4"
+                                HeightRequest="28"
+                                CornerRadius="1"
+                                Color="White"
+                                VerticalOptions="End" />
+                            <BoxView
+                                x:Name="Wave3"
+                                WidthRequest="4"
+                                HeightRequest="16"
+                                CornerRadius="1"
+                                Color="White"
+                                VerticalOptions="End" />
+                            <BoxView
+                                x:Name="Wave4"
+                                WidthRequest="4"
+                                HeightRequest="26"
+                                CornerRadius="1"
+                                Color="White"
+                                VerticalOptions="End" />
+                        </HorizontalStackLayout>
 
+                        <VerticalStackLayout
+                            Grid.Column="1"
+                            VerticalOptions="Center"
+                            Spacing="1">
+                            <Label
+                                Text="Đang phát:"
+                                TextColor="#FFEDD5"
+                                FontAttributes="Bold"
+                                FontSize="13" />
+                            <Label
+                                x:Name="NowPlayingNameLabel"
+                                Text=""
+                                TextColor="White"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                LineBreakMode="TailTruncation" />
+                        </VerticalStackLayout>
+
+                        <Border
+                            Grid.Column="2"
+                            x:Name="StopAudioBtn"
+                            WidthRequest="40"
+                            HeightRequest="40"
+                            BackgroundColor="#FFC300"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 50"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"
+                            IsVisible="False">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnStopAudioTapped" />
+                            </Border.GestureRecognizers>
+
+                            <Grid>
+                                <BoxView
+                                    WidthRequest="18"
+                                    HeightRequest="18"
+                                    Color="White"
+                                    HorizontalOptions="Center"
+                                    VerticalOptions="Center" />
                             </Grid>
                         </Border>
                     </Grid>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+                </Border>
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- BOTTOM SHEET -->
+        <Border
+            x:Name="BottomSheet"
+            ZIndex="20"
+            BackgroundColor="#FBF6EE"
+            StrokeThickness="0"
+            Padding="0"
+            HeightRequest="620"
+            VerticalOptions="End">
+
+            <Grid RowDefinitions="2,Auto,Auto,*">
+
+                <!-- top accent line -->
+                <BoxView
+                    Grid.Row="0"
+                    Color="#F59E0B"
+                    HeightRequest="2"
+                    HorizontalOptions="Fill" />
+
+                <!-- drag handle -->
+                <Border
+                    Grid.Row="1"
+                    WidthRequest="52"
+                    HeightRequest="6"
+                    BackgroundColor="#FF8C00"
+                    StrokeThickness="0"
+                    HorizontalOptions="Center"
+                    Margin="0,10,0,14">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="30" />
+                    </Border.StrokeShape>
+
+                    <Border.GestureRecognizers>
+                        <PanGestureRecognizer PanUpdated="OnBottomSheetPanUpdated" />
+                    </Border.GestureRecognizers>
+                </Border>
+
+                <!-- header -->
+                <VerticalStackLayout
+                    Grid.Row="2"
+                    Padding="26,0,26,14"
+                    Spacing="4">
+                    <Label
+                        Text="NEARBY FOOD SPOTS"
+                        TextColor="#7C2D12"
+                        FontSize="22"
+                        FontAttributes="Bold" />
+                    <Label
+                        x:Name="LocationCountLabel"
+                        Text="0 locations available"
+                        TextColor="#C2410C"
+                        FontSize="14" />
+                </VerticalStackLayout>
+
+                <!-- list -->
+                <CollectionView
+                    x:Name="EateryList"
+                    Grid.Row="3"
+                    SelectionChanged="OnEaterySelected"
+                    SelectionMode="Single"
+                    Margin="0,0,0,10"
+                    BackgroundColor="#FBF6EE"
+                    VerticalOptions="Fill"
+                    ItemsLayout="VerticalList">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="model:Poi">
+                            <Border
+                                Margin="26,8"
+                                Padding="14"
+                                BackgroundColor="White"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 12">
+
+                                <Grid ColumnDefinitions="82,*,Auto" ColumnSpacing="14">
+
+                                    <Grid
+                                        WidthRequest="82"
+                                        HeightRequest="82">
+                                        <Border
+                                            BackgroundColor="#F4E1C7"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 18" />
+                                        <Image
+                                            Source="{Binding ImageName, TargetNullValue='placeholder.png'}"
+                                            Aspect="AspectFill" />
+                                    </Grid>
+
+                                    <VerticalStackLayout
+                                        Grid.Column="1"
+                                        VerticalOptions="Center"
+                                        Spacing="4">
+                                        <Label
+                                            Text="{Binding Name}"
+                                            TextColor="#7C2D12"
+                                            FontSize="18"
+                                            FontAttributes="Bold"
+                                            LineBreakMode="TailTruncation" />
+                                        <HorizontalStackLayout Spacing="5">
+                                            <Label
+                                                Text="📍"
+                                                FontSize="13"
+                                                TextColor="#F97316" />
+                                            <Label
+                                                Text="Tap để xem chi tiết"
+                                                FontSize="14"
+                                                TextColor="#F97316" />
+                                        </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+
+                                    <!-- Chỉ là chấm màu, KHÔNG đặt x:Name ở đây -->
+                                    <Border
+                                        Grid.Column="2"
+                                        WidthRequest="10"
+                                        HeightRequest="10"
+                                        BackgroundColor="#F97316"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 50"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Grid>
+        </Border>
     </Grid>
 </ContentPage>

@@ -7,128 +7,212 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using VinhKhanhTourGuide.Models;
-
+using VinhKhanhTourGuide.Services;
 
 namespace VinhKhanhTourGuide.Data
 {
     public class AppDbContext
     {
-        private SQLiteAsyncConnection _database;
+        private SQLiteAsyncConnection? _database;
+        private readonly PremiumService _premiumService;
+
+        // Giữ nguyên 1 version DB cố định, không cần tăng v5/v6/v7 liên tục
+        private const string DatabaseFileName = "VinhKhanhGuide.db3";
+
+        // Đổi URL theo môi trường test của bạn
+        private const string PoisApiUrl = "http://10.0.2.2:5099/api/pois";
+        private const string AnalyticsApiUrl = "http://10.0.2.2:5099/api/listeninglogs";
+
+        public AppDbContext(PremiumService premiumService)
+        {
+            _premiumService = premiumService;
+        }
+
+        private string GetDbPath()
+        {
+            return Path.Combine(FileSystem.AppDataDirectory, DatabaseFileName);
+        }
 
         private async Task Init()
         {
             if (_database is not null) return;
 
-            // Đổi tên file thành v5 để nó tạo database mới tinh, không bị kẹt data cũ
-            var dbPath = Path.Combine(FileSystem.AppDataDirectory, "VinhKhanhGuide_v5.db3");
+            var dbPath = GetDbPath();
             _database = new SQLiteAsyncConnection(dbPath);
 
             await _database.CreateTableAsync<Poi>();
             await _database.CreateTableAsync<TranslationCache>();
 
-            // =================================================================
-            // BƯỚC MỚI: ĐỒNG BỘ DỮ LIỆU TỪ SQL SERVER (API) XUỐNG SQLITE LOCAL
-            // =================================================================
-            try
+            bool isPremium = _premiumService.IsPremium();
+
+            // Đọc local hiện có
+            var localPois = await _database.Table<Poi>().ToListAsync();
+            bool hasLocalData = localPois.Count > 0;
+
+            if (isPremium)
             {
-                // ========================================================
-                // BÙA CHÚ VƯỢT RÀO BẢO MẬT CỦA ANDROID (BỎ QUA LỖI SSL)
-                // ========================================================
-                var handler = new HttpClientHandler();
-                handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
-                using var client = new HttpClient(handler);
-
-                string apiUrl = "http://10.0.2.2:5099/api/pois";
-
-                var response = await client.GetStringAsync(apiUrl);
-                var cloudPois = JsonSerializer.Deserialize<List<Poi>>(response, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                if (cloudPois != null && cloudPois.Count > 0)
+                try
                 {
-                    await _database.DeleteAllAsync<Poi>();
-                    await _database.InsertAllAsync(cloudPois);
-                    System.Diagnostics.Debug.WriteLine("✅ TẢI DATA TỪ API THÀNH CÔNG!");
+                    var handler = new HttpClientHandler();
+                    handler.ServerCertificateCustomValidationCallback = (m, c, ch, e) => true;
+                    using var client = new HttpClient(handler);
+
+                    var response = await client.GetStringAsync(PoisApiUrl);
+
+                    var cloudPois = JsonSerializer.Deserialize<List<Poi>>(
+                        response,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+
+                    if (cloudPois != null && cloudPois.Count > 0)
+                    {
+                        await _database.DeleteAllAsync<Poi>();
+                        await _database.InsertAllAsync(cloudPois);
+
+                        System.Diagnostics.Debug.WriteLine($"✅ PREMIUM SYNC OK: {cloudPois.Count} POI");
+                        return;
+                    }
+
+                    System.Diagnostics.Debug.WriteLine("⚠️ API premium trả về rỗng.");
                 }
-            }
-            catch (Exception ex)
-            {
-                // IN LỖI ĐỎ CHÓT RA BẢNG OUTPUT ĐỂ BẮT BỆNH
-                System.Diagnostics.Debug.WriteLine($"❌ LỖI GỌI API: {ex.Message}");
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ PREMIUM API FAIL: {ex.Message}");
+                }
+
+                // Premium + mất mạng + đã có cache local => giữ nguyên để nghe offline
+                if (hasLocalData)
+                {
+                    System.Diagnostics.Debug.WriteLine($"📦 PREMIUM OFFLINE CACHE: giữ {localPois.Count} POI local");
+                    return;
+                }
+
+                System.Diagnostics.Debug.WriteLine("⚠️ PREMIUM nhưng chưa có cache local, fallback về 2 POI seed.");
             }
 
-            // =================================================================
-            // BACKUP: NẾU VỪA CÀI APP, CHƯA CÓ DATA, VÀ CŨNG KHÔNG CÓ MẠNG ĐỂ GỌI API
-            // =================================================================
-            var count = await _database.Table<Poi>().CountAsync();
-            if (count == 0)
-            {
-                var pois = new List<Poi>
-                {
-                    new Poi { Id = "OC-OANH", Name = "Ốc Oanh", ImageName = "placeholder_ocoanh.png", Priority = 1, Latitude = 10.7607099, Longitude = 106.7032565, GeofenceRadius = 30, Description_VN = "Ốc Oanh là biểu tượng ẩm thực của phố Vĩnh Khánh..." },
-                    new Poi { Id = "OC-VU", Name = "Ốc Vũ", ImageName = "placeholder_ocvu.png", Priority = 2, Latitude = 10.7613801, Longitude = 106.7026756, GeofenceRadius = 30, Description_VN = "Nằm ngay đoạn đầu đường, Ốc Vũ nổi bật..." }
-                };
-                await _database.InsertAllAsync(pois);
-            }
+            // Standard mode: luôn reset đúng 2 POI local
+            await SeedStandardPoisAsync();
         }
 
-        // ---------- CÁC HÀM TRUY VẤN CŨ GIỮ NGUYÊN ----------
+        private async Task SeedStandardPoisAsync()
+        {
+            if (_database is null) return;
+
+            await _database.DeleteAllAsync<Poi>();
+
+            var standardPois = new List<Poi>
+            {
+                new Poi
+                {
+                    Id = "OC-OANH",
+                    Name = "Ốc Oanh",
+                    ImageName = "placeholder_ocoanh.png",
+                    Priority = 1,
+                    Latitude = 10.7607099,
+                    Longitude = 106.7032565,
+                    GeofenceRadius = 30,
+                    Description_VN = "Chào mừng bạn đến với Ốc Oanh – 'trái tim' rực rỡ nhất của phố ẩm thực Vĩnh Khánh. Đây là điểm dừng chân không thể bỏ qua cho những tín đồ yêu thích không gian vỉa hè náo nhiệt đúng chất Sài Gòn. Đừng quên thưởng thức món Ốc hương xào muối ớt huyền thoại, với vị cay nồng và độ giòn sần sật đã làm nên thương hiệu của quán suốt nhiều năm qua. Tại đây, hải sản không chỉ tươi ngon mà còn mang đậm hương vị phóng khoáng của Quận 4."
+                },
+                new Poi
+                {
+                    Id = "OC-VU",
+                    Name = "Ốc Vũ",
+                    ImageName = "placeholder_ocvu.png",
+                    Priority = 2,
+                    Latitude = 10.7613801,
+                    Longitude = 106.7026756,
+                    GeofenceRadius = 30,
+                    Description_VN = "Nằm ngay lối vào của thiên đường ốc, Ốc Vũ đón chào bạn bằng không gian thoáng đãng và thực đơn hải sản phong phú. Điểm nhấn của quán chính là các món sốt trứng muối béo ngậy và ốc móng tay cháy tỏi thơm lừng, cực kỳ bắt miệng khi dùng kèm bánh mì nóng. Nếu bạn tìm kiếm sự nhanh nhẹn trong phục vụ cùng chất lượng món ăn ổn định để khởi đầu hành trình khám phá ẩm thực đêm, Ốc Vũ chính là lựa chọn hoàn hảo."
+                }
+            };
+
+            await _database.InsertAllAsync(standardPois);
+            System.Diagnostics.Debug.WriteLine("📱 STANDARD MODE: 2 POI local");
+        }
+
         public async Task<List<Poi>> GetPoisAsync()
         {
             await Init();
-            return await _database.Table<Poi>().ToListAsync();
+            return await _database!.Table<Poi>().ToListAsync();
         }
 
         public async Task<Poi> GetPoiByIdAsync(string id)
         {
             await Init();
-            return await _database.Table<Poi>().Where(p => p.Id == id).FirstOrDefaultAsync();
+            return await _database!.Table<Poi>()
+                                   .Where(p => p.Id == id)
+                                   .FirstOrDefaultAsync();
         }
 
         public async Task<TranslationCache> GetCacheAsync(string poiId, string langCode)
         {
             await Init();
-            return await _database.Table<TranslationCache>()
-                                  .Where(c => c.PoiId == poiId && c.LanguageCode == langCode)
-                                  .FirstOrDefaultAsync();
+            return await _database!.Table<TranslationCache>()
+                                   .Where(c => c.PoiId == poiId && c.LanguageCode == langCode)
+                                   .FirstOrDefaultAsync();
         }
 
         public async Task SaveCacheAsync(TranslationCache cache)
         {
             await Init();
-            await _database.InsertAsync(cache);
+            await _database!.InsertAsync(cache);
         }
 
         public async Task SendAnalyticsAsync(ListeningLog log)
         {
             try
             {
-                string apiUrl = "http://10.0.2.2:5099/api/listeninglogs";
-
                 var json = JsonSerializer.Serialize(log);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 using var client = new HttpClient();
-
-                // ĐỌC KẾT QUẢ TRẢ VỀ TỪ SERVER
-                var response = await client.PostAsync(apiUrl, content);
+                var response = await client.PostAsync(AnalyticsApiUrl, content);
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Server trả về 200 OK -> Thực sự thành công lưu vào DB
                     System.Diagnostics.Debug.WriteLine($"✅ THÀNH CÔNG: Đã lưu {log.PoiId} vào Database!");
                 }
                 else
                 {
-                    // Server từ chối hoặc bị lỗi (400, 404, 500...)
                     string errorDetail = await response.Content.ReadAsStringAsync();
                     System.Diagnostics.Debug.WriteLine($"❌ API TỪ CHỐI (Mã {response.StatusCode}): {errorDetail}");
                 }
             }
             catch (Exception ex)
             {
-                // Trên điện thoại thì chỉ cần in ra cửa sổ Output thôi
                 System.Diagnostics.Debug.WriteLine($"❌ MẤT KẾT NỐI MẠNG HOẶC LỖI: {ex.Message}");
             }
+        }
+
+        public async Task ReloadAsync()
+        {
+            _database = null;
+            await Init();
+        }
+
+        public async Task ResetDatabaseAsync()
+        {
+            if (_database != null)
+            {
+                await _database.CloseAsync();
+                _database = null;
+            }
+
+            var dbPath = GetDbPath();
+
+            if (File.Exists(dbPath))
+            {
+                File.Delete(dbPath);
+                System.Diagnostics.Debug.WriteLine("🗑️ Đã xóa database local.");
+            }
+        }
+
+        public async Task ResetAndReloadAsync()
+        {
+            await ResetDatabaseAsync();
+            await ReloadAsync();
         }
     }
 }

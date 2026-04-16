@@ -13,7 +13,7 @@ namespace VinhKhanhTourGuide.Services
         private IDispatcherTimer _radarTimer;
         private List<Poi> _poiList = new();
         private Dictionary<string, DateTime> _spokenPoisDict = new();
-        private readonly int _cooldownMinutes = 5;
+        private readonly int _cooldownMinutes = 2;
         private bool _isProcessing = false;
 
         // Sự kiện (Event) bắn ra khi phát hiện người dùng vào vùng Geofence hợp lệ

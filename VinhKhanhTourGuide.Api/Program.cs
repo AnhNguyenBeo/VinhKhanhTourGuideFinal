@@ -3,6 +3,8 @@ using VinhKhanhTourGuide.Api.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.UseUrls("http://0.0.0.0:5099");
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<TourDbContext>(options => options.UseSqlServer(connectionString));
 // Add services to the container.

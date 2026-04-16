@@ -1,51 +1,111 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="VinhKhanhTourGuide.Views.EateryDetailPage"
-             Title="{Binding Name}">
+<ContentPage
+    x:Class="VinhKhanhTourGuide.Views.EateryDetailPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#F7F0E3"
+    NavigationPage.HasNavigationBar="False">
 
     <ScrollView>
-        <VerticalStackLayout Spacing="15" Padding="20">
-            <Image Source="{Binding ImageName}" 
-                   HeightRequest="250" 
-                   Aspect="AspectFill" />
+        <VerticalStackLayout Spacing="0">
 
-            <Label Text="{Binding Name}" 
-                   FontSize="26" 
-                   FontAttributes="Bold" 
-                   TextColor="Purple"/>
+            <!-- hero image -->
+            <Grid HeightRequest="260">
+                <Image Source="{Binding ImageName}"
+                       Aspect="AspectFill" />
 
-            <Label Text="{Binding Description_VN}" 
-                   FontSize="16" 
-                   LineHeight="1.5"
-                   TextColor="Black" />
+                <Grid>
+                    <Grid.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#33000000" Offset="0.0" />
+                            <GradientStop Color="#00000000" Offset="0.45" />
+                            <GradientStop Color="#66000000" Offset="1.0" />
+                        </LinearGradientBrush>
+                    </Grid.Background>
+                </Grid>
 
-            <BoxView HeightRequest="1" Color="LightGray" Margin="0,10" />
+                <!-- close -->
+                <Border BackgroundColor="#FDFDFD"
+                        WidthRequest="40"
+                        HeightRequest="40"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 20"
+                        HorizontalOptions="Start"
+                        VerticalOptions="Start"
+                        Margin="16,16,0,0">
+                    <Button Text="✕"
+                            BackgroundColor="Transparent"
+                            TextColor="#7C2D12"
+                            FontSize="20"
+                            Clicked="OnBackClicked" />
+                </Border>
 
-            <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
-                <Button x:Name="PlayAudioButton" 
-                        Text="🔊 Nghe thuyết minh" 
-                        Clicked="OnPlayAudioClicked" 
-                        BackgroundColor="Purple" 
-                        TextColor="White" 
-                        CornerRadius="10"
-                        HeightRequest="50"/>
+                <!-- distance badge -->
+                <Border BackgroundColor="#FDFDFD"
+                        Padding="14,8"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 18"
+                        HorizontalOptions="End"
+                        VerticalOptions="End"
+                        Margin="0,0,18,18">
+                    <Label Text="50m away"
+                           TextColor="#7C2D12"
+                           FontSize="14"
+                           FontAttributes="Bold" />
+                </Border>
+            </Grid>
 
-                <Button x:Name="NavigateButton" 
-                        Text="📍 Chỉ đường" 
-                        Clicked="OnNavigateClicked" 
-                        BackgroundColor="#1976D2" 
-                        TextColor="White" 
-                        CornerRadius="10"
-                        HeightRequest="50"/>
-            </HorizontalStackLayout>
+            <!-- content -->
+            <VerticalStackLayout Padding="28,24,28,30"
+                                 Spacing="22">
 
-            <Label x:Name="StatusLabel" 
-                   Text="" 
-                   TextColor="Gray" 
-                   FontAttributes="Italic" 
-                   HorizontalOptions="Center"/>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="{Binding Name}"
+                           TextColor="#7C2D12"
+                           FontSize="28"
+                           FontAttributes="Bold" />
 
+                    <Label Text="{Binding Description_VN}"
+                           TextColor="#8B4513"
+                           FontSize="16"
+                           LineHeight="1.5" />
+                </VerticalStackLayout>
+
+                <!-- Play narration -->
+                <Button x:Name="PlayAudioButton"
+                        Text="▶  Play narration"
+                        BackgroundColor="#F97316"
+                        TextColor="White"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        CornerRadius="20"
+                        HeightRequest="86"
+                        Clicked="OnPlayAudioClicked" />
+
+                <!-- Navigate -->
+                <Button Text="➤  Navigate"
+                        BackgroundColor="White"
+                        TextColor="#7C2D12"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        CornerRadius="20"
+                        BorderColor="#F3C38B"
+                        BorderWidth="1.5"
+                        HeightRequest="86"
+                        Clicked="OnNavigateClicked" />
+
+                <Label x:Name="StatusLabel"
+                       Text=""
+                       TextColor="#C2410C"
+                       FontSize="14" />
+
+                <BoxView WidthRequest="82"
+                         HeightRequest="5"
+                         CornerRadius="3"
+                         Color="#F59E0B"
+                         HorizontalOptions="Center"
+                         Margin="0,10,0,0" />
+            </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
