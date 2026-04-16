@@ -33,7 +33,14 @@
                                 @Html.DisplayFor(modelItem => item.Name)
                             </td>
                             <td>
-                                <span class="badge bg-light text-secondary border"><i class="fas fa-image me-1"></i> @item.ImageName</span>
+                                @if (!string.IsNullOrEmpty(item.ImageName))
+                                {
+                                    <img src="~/images/@item.ImageName" alt="@item.Name" class="rounded shadow-sm" style="width: 80px; height: 60px; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-secondary border"><i class="fas fa-image me-1"></i> Trống</span>
+                                }
                             </td>
                             <td class="text-muted" style="font-size: 0.9em;">
                                 @item.Latitude, @item.Longitude

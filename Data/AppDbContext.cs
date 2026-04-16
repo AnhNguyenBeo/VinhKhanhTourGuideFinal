@@ -5,6 +5,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using VinhKhanhTourGuide.Models;
 using VinhKhanhTourGuide.Services;
@@ -15,6 +16,7 @@ namespace VinhKhanhTourGuide.Data
     {
         private SQLiteAsyncConnection? _database;
         private readonly PremiumService _premiumService;
+        private readonly SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
 
         // Giữ nguyên 1 version DB cố định, không cần tăng v5/v6/v7 liên tục
         private const string DatabaseFileName = "VinhKhanhGuide.db3";
@@ -37,63 +39,74 @@ namespace VinhKhanhTourGuide.Data
         {
             if (_database is not null) return;
 
-            var dbPath = GetDbPath();
-            _database = new SQLiteAsyncConnection(dbPath);
-
-            await _database.CreateTableAsync<Poi>();
-            await _database.CreateTableAsync<TranslationCache>();
-
-            bool isPremium = _premiumService.IsPremium();
-
-            // Đọc local hiện có
-            var localPois = await _database.Table<Poi>().ToListAsync();
-            bool hasLocalData = localPois.Count > 0;
-
-            if (isPremium)
+            await _initLock.WaitAsync();
+            try
             {
-                try
+                // Double-check sau khi vào lock
+                if (_database is not null) return;
+
+                var dbPath = GetDbPath();
+                _database = new SQLiteAsyncConnection(dbPath);
+
+                await _database.CreateTableAsync<Poi>();
+                await _database.CreateTableAsync<TranslationCache>();
+
+                bool isPremium = _premiumService.IsPremium();
+
+                // Đọc local hiện có
+                var localPois = await _database.Table<Poi>().ToListAsync();
+                bool hasLocalData = localPois.Count > 0;
+
+                if (isPremium)
                 {
-                    var handler = new HttpClientHandler();
-                    handler.ServerCertificateCustomValidationCallback = (m, c, ch, e) => true;
-                    using var client = new HttpClient(handler);
-
-                    var response = await client.GetStringAsync(PoisApiUrl);
-
-                    var cloudPois = JsonSerializer.Deserialize<List<Poi>>(
-                        response,
-                        new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
-
-                    if (cloudPois != null && cloudPois.Count > 0)
+                    try
                     {
-                        await _database.DeleteAllAsync<Poi>();
-                        await _database.InsertAllAsync(cloudPois);
+                        var handler = new HttpClientHandler();
+                        handler.ServerCertificateCustomValidationCallback = (m, c, ch, e) => true;
+                        using var client = new HttpClient(handler);
 
-                        System.Diagnostics.Debug.WriteLine($"✅ PREMIUM SYNC OK: {cloudPois.Count} POI");
+                        var response = await client.GetStringAsync(PoisApiUrl);
+
+                        var cloudPois = JsonSerializer.Deserialize<List<Poi>>(
+                            response,
+                            new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+
+                        if (cloudPois != null && cloudPois.Count > 0)
+                        {
+                            await _database.DeleteAllAsync<Poi>();
+                            await _database.InsertAllAsync(cloudPois);
+
+                            System.Diagnostics.Debug.WriteLine($"✅ PREMIUM SYNC OK: {cloudPois.Count} POI");
+                            return;
+                        }
+
+                        System.Diagnostics.Debug.WriteLine("⚠️ API premium trả về rỗng.");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"⚠️ PREMIUM API FAIL: {ex.Message}");
+                    }
+
+                    // Premium + mất mạng + đã có cache local => giữ nguyên để nghe offline
+                    if (hasLocalData)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"📦 PREMIUM OFFLINE CACHE: giữ {localPois.Count} POI local");
                         return;
                     }
 
-                    System.Diagnostics.Debug.WriteLine("⚠️ API premium trả về rỗng.");
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"⚠️ PREMIUM API FAIL: {ex.Message}");
+                    System.Diagnostics.Debug.WriteLine("⚠️ PREMIUM nhưng chưa có cache local, fallback về 2 POI seed.");
                 }
 
-                // Premium + mất mạng + đã có cache local => giữ nguyên để nghe offline
-                if (hasLocalData)
-                {
-                    System.Diagnostics.Debug.WriteLine($"📦 PREMIUM OFFLINE CACHE: giữ {localPois.Count} POI local");
-                    return;
-                }
-
-                System.Diagnostics.Debug.WriteLine("⚠️ PREMIUM nhưng chưa có cache local, fallback về 2 POI seed.");
+                // Standard mode: luôn reset đúng 2 POI local
+                await SeedStandardPoisAsync();
             }
-
-            // Standard mode: luôn reset đúng 2 POI local
-            await SeedStandardPoisAsync();
+            finally
+            {
+                _initLock.Release();
+            }
         }
 
         private async Task SeedStandardPoisAsync()
@@ -135,7 +148,15 @@ namespace VinhKhanhTourGuide.Data
         public async Task<List<Poi>> GetPoisAsync()
         {
             await Init();
-            return await _database!.Table<Poi>().ToListAsync();
+            var pois = await _database!.Table<Poi>().ToListAsync();
+
+            // DEBUG: Kiểm tra ImageUrl có được lưu không
+            foreach (var p in pois)
+            {
+                System.Diagnostics.Debug.WriteLine($"[POI] {p.Name} | ImageUrl = {p.ImageUrl}");
+            }
+
+            return pois;
         }
 
         public async Task<Poi> GetPoiByIdAsync(string id)

@@ -19,7 +19,19 @@ namespace VinhKhanhTourGuide.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllPois()
         {
-            var pois = await _context.Poi.ToListAsync();
+            var baseUrl = "http://10.0.2.2:5099";
+
+            var pois = await _context.Poi
+                .OrderBy(p => p.Priority)
+                .ToListAsync();
+
+            foreach (var poi in pois)
+            {
+                poi.ImageUrl = string.IsNullOrWhiteSpace(poi.ImageName)
+                    ? null
+                    : $"{baseUrl}/images/{poi.ImageName}";
+            }
+
             return Ok(pois);
         }
     }

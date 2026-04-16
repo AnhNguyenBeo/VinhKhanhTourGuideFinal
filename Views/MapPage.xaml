@@ -288,8 +288,7 @@
                                             BackgroundColor="#F4E1C7"
                                             StrokeThickness="0"
                                             StrokeShape="RoundRectangle 18" />
-                                        <Image
-                                            Source="{Binding ImageName, TargetNullValue='placeholder.png'}"
+                                        <Image Source="{Binding ImageUrl}"
                                             Aspect="AspectFill" />
                                     </Grid>
 

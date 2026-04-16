@@ -16,12 +16,28 @@ namespace VinhKhanhTourGuide.WebAdmin.Controllers
             _context = context;
         }
 
-        // GET: api/pois
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Poi>>> GetPois()
+        public async Task<ActionResult<IEnumerable<object>>> GetPois()
         {
-            // Trả về dữ liệu thô (JSON) để Mobile App dễ dàng giải mã
-            return await _context.Poi.OrderBy(p => p.Priority).ToListAsync();
+            // Tự động lấy địa chỉ server (ví dụ: http://10.0.2.2:5099)
+            var baseUrl = $"http://{Request.Host}{Request.PathBase}";
+
+            var pois = await _context.Poi.OrderBy(p => p.Priority).ToListAsync();
+
+            // Trả về một danh sách mới có kèm link ảnh đầy đủ
+            var result = pois.Select(p => new {
+                p.Id,
+                p.Name,
+                p.Latitude,
+                p.Longitude,
+                p.Description_VN,
+                p.GeofenceRadius,
+                p.Priority,
+                // Tạo link ảnh hoàn chỉnh
+                ImageUrl = $"{baseUrl}/images/{p.ImageName}"
+            });
+
+            return Ok(result);
         }
     }
 }

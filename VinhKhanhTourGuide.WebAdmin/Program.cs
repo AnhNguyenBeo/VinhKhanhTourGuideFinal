@@ -1,25 +1,30 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<VinhKhanhTourGuide.WebAdmin.Data.TourDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<VinhKhanhTourGuide.WebAdmin.Data.TourDbContext>(
+    options => options.UseSqlServer(connectionString)
+);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
-app.UseStaticFiles();
+// ✅ FIX: Chỉ redirect HTTPS trên Production
+// Khi Development, giữ HTTP để app Android (10.0.2.2) gọi được bình thường
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseStaticFiles(); // Phục vụ ảnh từ wwwroot/images/
 
 app.UseRouting();
 
@@ -29,6 +34,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// Cố định culture en-US để dấu chấm thập phân (Latitude/Longitude) không bị lỗi
 var supportedCultures = new[] { "en-US" };
 var localizationOptions = new RequestLocalizationOptions()
     .SetDefaultCulture(supportedCultures[0])

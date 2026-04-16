@@ -11,9 +11,11 @@
 
 <div class="card shadow-sm">
     <div class="card-body p-4">
-        <form asp-action="Edit">
+        <form asp-action="Edit" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
             <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="ImageName" />
 
             <div class="row">
                 <div class="col-md-6 mb-3">
@@ -23,9 +25,15 @@
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label asp-for="ImageName" class="control-label">Tên file ảnh</label>
-                    <input asp-for="ImageName" class="form-control" placeholder="VD: placeholder_ocoanh.png" />
-                    <span asp-validation-for="ImageName" class="text-danger"></span>
+                    <label class="control-label">Tải ảnh mới (Bỏ trống nếu giữ ảnh cũ)</label>
+                    <input type="file" name="uploadFile" class="form-control" accept="image/*" />
+
+                    @if (!string.IsNullOrEmpty(Model.ImageName))
+                    {
+                        <small class="text-muted mt-1 d-block">
+                            <i class="fas fa-image"></i> Ảnh hiện tại: <strong>@Model.ImageName</strong>
+                        </small>
+                    }
                 </div>
 
                 <div class="col-md-6 mb-3">

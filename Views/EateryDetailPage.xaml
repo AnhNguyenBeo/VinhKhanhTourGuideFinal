@@ -11,10 +11,11 @@
 
             <!-- hero image -->
             <Grid HeightRequest="260">
-                <Image Source="{Binding ImageName}"
-                       Aspect="AspectFill" />
+                <Image Source="{Binding ImageUrl}" 
+                   HeightRequest="250" 
+                   Aspect="AspectFill" />
 
-                <Grid>
+                    <Grid>
                     <Grid.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                             <GradientStop Color="#33000000" Offset="0.0" />

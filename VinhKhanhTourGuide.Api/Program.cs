@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VinhKhanhTourGuide.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+app.UseStaticFiles();
 app.UseAuthorization();
 
 app.MapControllers();
