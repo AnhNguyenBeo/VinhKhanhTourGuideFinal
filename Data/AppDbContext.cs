@@ -32,7 +32,7 @@ namespace VinhKhanhTourGuide.Data
 #else
         // Khi build bản Release (Production): Điền tên miền server thật của bạn vào đây
         // VD: "https://api.vinhkhanhtour.com"
-        private static readonly string BaseApiUrl = "https://your-production-domain.com"; 
+        private static readonly string BaseApiUrl = "http://vinhkhanh.somee.com";
 #endif
 
         private readonly string PoisApiUrl = $"{BaseApiUrl}/api/pois";

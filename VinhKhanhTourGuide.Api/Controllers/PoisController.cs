@@ -19,7 +19,8 @@ namespace VinhKhanhTourGuide.Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllPois()
         {
-            var baseUrl = "http://10.0.2.2:5099";
+            var scheme = Request.Host.Value.Contains("ngrok-free") ? "https" : Request.Scheme;
+            var baseUrl = $"{scheme}://{Request.Host}{Request.PathBase}";
 
             var pois = await _context.Poi
                 .OrderBy(p => p.Priority)

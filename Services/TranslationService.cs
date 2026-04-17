@@ -10,7 +10,7 @@ namespace VinhKhanhTourGuide.Services
     {
         private readonly HttpClient _httpClient;
 
-        private const string GeminiApiKey = " ";
+        private const string GeminiApiKey = "";
 
         public TranslationService()
         {

@@ -6,12 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VinhKhanhTourGuide.WebAdmin.Migrations
 {
     /// <inheritdoc />
-    public partial class AddListeningLog : Migration
+    public partial class UpdateDbForSomee : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Chỉ tạo bảng ListeningLog, bỏ qua bảng Poi đã tồn tại
             migrationBuilder.CreateTable(
                 name: "ListeningLog",
                 columns: table => new
@@ -29,14 +28,34 @@ namespace VinhKhanhTourGuide.WebAdmin.Migrations
                 {
                     table.PrimaryKey("PK_ListeningLog", x => x.Id);
                 });
+
+            migrationBuilder.CreateTable(
+                name: "Poi",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ImageName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Latitude = table.Column<double>(type: "float", nullable: false),
+                    Longitude = table.Column<double>(type: "float", nullable: false),
+                    Description_VN = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    GeofenceRadius = table.Column<int>(type: "int", nullable: false),
+                    Priority = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Poi", x => x.Id);
+                });
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Khi rollback (lùi database), chỉ xóa bảng ListeningLog
             migrationBuilder.DropTable(
                 name: "ListeningLog");
+
+            migrationBuilder.DropTable(
+                name: "Poi");
         }
     }
 }
