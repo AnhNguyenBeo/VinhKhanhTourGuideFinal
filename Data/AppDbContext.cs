@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using VinhKhanhTourGuide.Models;
 using VinhKhanhTourGuide.Services;
+using Microsoft.Maui.Devices; // Cần thiết để lấy DeviceInfo
 
 namespace VinhKhanhTourGuide.Data
 {
@@ -18,12 +19,25 @@ namespace VinhKhanhTourGuide.Data
         private readonly PremiumService _premiumService;
         private readonly SemaphoreSlim _initLock = new SemaphoreSlim(1, 1);
 
-        // Giữ nguyên 1 version DB cố định, không cần tăng v5/v6/v7 liên tục
         private const string DatabaseFileName = "VinhKhanhGuide.db3";
 
-        // Đổi URL theo môi trường test của bạn
-        private const string PoisApiUrl = "http://10.0.2.2:5099/api/pois";
-        private const string AnalyticsApiUrl = "http://10.0.2.2:5099/api/listeninglogs";
+        // =================================================================
+        // CẤU HÌNH API URL ĐỘNG THEO MÔI TRƯỜNG
+        // =================================================================
+#if DEBUG
+        // Đang chạy test (Debug): Tự động đổi IP dựa theo nền tảng
+        private static readonly string BaseApiUrl = DeviceInfo.Platform == DevicePlatform.Android
+            ? "http://10.0.2.2:5099"
+            : "http://localhost:5099";
+#else
+        // Khi build bản Release (Production): Điền tên miền server thật của bạn vào đây
+        // VD: "https://api.vinhkhanhtour.com"
+        private static readonly string BaseApiUrl = "https://your-production-domain.com"; 
+#endif
+
+        private readonly string PoisApiUrl = $"{BaseApiUrl}/api/pois";
+        private readonly string AnalyticsApiUrl = $"{BaseApiUrl}/api/listeninglogs";
+
 
         public AppDbContext(PremiumService premiumService)
         {
@@ -35,6 +49,22 @@ namespace VinhKhanhTourGuide.Data
             return Path.Combine(FileSystem.AppDataDirectory, DatabaseFileName);
         }
 
+        // =================================================================
+        // HÀM TẠO HTTP CLIENT AN TOÀN
+        // =================================================================
+        private HttpClient CreateHttpClient()
+        {
+#if DEBUG
+            // Chỉ bỏ qua kiểm tra chứng chỉ SSL khi đang chạy test (Debug)
+            var handler = new HttpClientHandler();
+            handler.ServerCertificateCustomValidationCallback = (m, c, ch, e) => true;
+            return new HttpClient(handler);
+#else
+            // Bản thật bắt buộc phải tuân thủ chuẩn bảo mật HTTPS của hệ điều hành
+            return new HttpClient();
+#endif
+        }
+
         private async Task Init()
         {
             if (_database is not null) return;
@@ -42,7 +72,6 @@ namespace VinhKhanhTourGuide.Data
             await _initLock.WaitAsync();
             try
             {
-                // Double-check sau khi vào lock
                 if (_database is not null) return;
 
                 var dbPath = GetDbPath();
@@ -52,8 +81,6 @@ namespace VinhKhanhTourGuide.Data
                 await _database.CreateTableAsync<TranslationCache>();
 
                 bool isPremium = _premiumService.IsPremium();
-
-                // Đọc local hiện có
                 var localPois = await _database.Table<Poi>().ToListAsync();
                 bool hasLocalData = localPois.Count > 0;
 
@@ -61,9 +88,8 @@ namespace VinhKhanhTourGuide.Data
                 {
                     try
                     {
-                        var handler = new HttpClientHandler();
-                        handler.ServerCertificateCustomValidationCallback = (m, c, ch, e) => true;
-                        using var client = new HttpClient(handler);
+                        // Dùng hàm CreateHttpClient an toàn vừa tạo
+                        using var client = CreateHttpClient();
 
                         var response = await client.GetStringAsync(PoisApiUrl);
 
@@ -90,7 +116,6 @@ namespace VinhKhanhTourGuide.Data
                         System.Diagnostics.Debug.WriteLine($"⚠️ PREMIUM API FAIL: {ex.Message}");
                     }
 
-                    // Premium + mất mạng + đã có cache local => giữ nguyên để nghe offline
                     if (hasLocalData)
                     {
                         System.Diagnostics.Debug.WriteLine($"📦 PREMIUM OFFLINE CACHE: giữ {localPois.Count} POI local");
@@ -100,7 +125,6 @@ namespace VinhKhanhTourGuide.Data
                     System.Diagnostics.Debug.WriteLine("⚠️ PREMIUM nhưng chưa có cache local, fallback về 2 POI seed.");
                 }
 
-                // Standard mode: luôn reset đúng 2 POI local
                 await SeedStandardPoisAsync();
             }
             finally
@@ -150,7 +174,6 @@ namespace VinhKhanhTourGuide.Data
             await Init();
             var pois = await _database!.Table<Poi>().ToListAsync();
 
-            // DEBUG: Kiểm tra ImageUrl có được lưu không
             foreach (var p in pois)
             {
                 System.Diagnostics.Debug.WriteLine($"[POI] {p.Name} | ImageUrl = {p.ImageUrl}");
@@ -188,7 +211,8 @@ namespace VinhKhanhTourGuide.Data
                 var json = JsonSerializer.Serialize(log);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                using var client = new HttpClient();
+                // Dùng hàm CreateHttpClient an toàn vừa tạo
+                using var client = CreateHttpClient();
                 var response = await client.PostAsync(AnalyticsApiUrl, content);
 
                 if (response.IsSuccessStatusCode)

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using VinhKhanhTourGuide.WebAdmin.Models;
 using VinhKhanhTourGuide.WebAdmin.Data;
 
@@ -13,44 +14,42 @@ namespace VinhKhanhTourGuide.WebAdmin.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            // Lấy data, gom nhóm theo quán và tính tổng số lượt nghe + thời gian trung bình
-            var stats = _context.ListeningLogs
-                .GroupBy(log => log.PoiId)
-                .Select(group => new
+            // 1. JOIN trước, GROUP BY sau để EF Core dễ dàng dịch sang SQL
+            var rawStats = await _context.ListeningLogs
+                .Join(
+                    _context.Poi,
+                    log => log.PoiId,       // Khóa ngoại từ bảng ListeningLog
+                    poi => poi.Id,          // Khóa chính từ bảng Poi
+                    (log, poi) => new { log.PoiId, poi.Name, log.DurationSeconds } // Chỉ lấy các cột cần thiết
+                )
+                .GroupBy(x => new { x.PoiId, x.Name }) // Nhóm dữ liệu lại theo Quán
+                .Select(g => new AnalyticsViewModel
                 {
-                    PoiId = group.Key,
-                    TotalListens = group.Count(),
-                    AverageDuration = group.Average(l => l.DurationSeconds)
+                    PoiName = g.Key.Name ?? g.Key.PoiId,
+                    TotalListens = g.Count(),
+                    // Để nguyên hàm Average, KHÔNG dùng Math.Round ở bước này
+                    AverageDuration = g.Average(x => x.DurationSeconds)
                 })
-                .ToList();
+                .OrderByDescending(v => v.TotalListens)
+                .ToListAsync(); // Chạy lệnh SQL và kéo kết quả thống kê (vài chục dòng) về RAM
 
-            // Kết hợp với bảng Poi để lấy tên quán cho đẹp (thay vì hiện mã OC-OANH)
-            var allPois = _context.Poi.ToList();
-
-            var viewModelList = new List<AnalyticsViewModel>();
-            foreach (var item in stats)
+            // 2. Định dạng lại số thập phân (Math.Round) bằng C#
+            foreach (var item in rawStats)
             {
-                var poi = allPois.FirstOrDefault(p => p.Id == item.PoiId);
-                viewModelList.Add(new AnalyticsViewModel
-                {
-                    PoiName = poi != null ? poi.Name : item.PoiId,
-                    TotalListens = item.TotalListens,
-                    AverageDuration = Math.Round(item.AverageDuration, 1) // Làm tròn 1 chữ số
-                });
+                item.AverageDuration = Math.Round(item.AverageDuration, 1);
             }
 
-            // Sắp xếp quán nào hot nhất lên đầu
-            viewModelList = viewModelList.OrderByDescending(v => v.TotalListens).ToList();
-
-            var rawCoords = _context.ListeningLogs
+            // 3. Xử lý Heatmap: chỉ lấy 2 cột tọa độ cần thiết, bỏ qua tọa độ (0, 0) bị lỗi
+            var rawCoords = await _context.ListeningLogs
                 .Where(l => l.Latitude != 0 && l.Longitude != 0)
-                .Select(l => new double[] { l.Latitude, l.Longitude, 1 }) // Số 1 ở cuối là 'cường độ nhiệt'
-                .ToList();
+                .Select(l => new double[] { l.Latitude, l.Longitude, 1 })
+                .ToListAsync();
 
             ViewBag.HeatmapData = System.Text.Json.JsonSerializer.Serialize(rawCoords);
-            return View(viewModelList);
+
+            return View(rawStats);
         }
     }
 }

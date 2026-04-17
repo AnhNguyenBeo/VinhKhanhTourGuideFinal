@@ -2,6 +2,7 @@
 using VinhKhanhTourGuide.Services;
 using VinhKhanhTourGuide.Data;
 using System.Globalization;
+using System.Net.Http;
 
 namespace VinhKhanhTourGuide.Views;
 
@@ -23,6 +24,7 @@ public partial class EateryDetailPage : ContentPage
 
         BindingContext = _poi;
     }
+
     private async void OnBackClicked(object sender, EventArgs e)
     {
         await Navigation.PopAsync();
@@ -59,9 +61,24 @@ public partial class EateryDetailPage : ContentPage
 
             StatusLabel.Text = "Đã phát xong.";
         }
-        catch (Exception ex)
+        catch (HttpRequestException)
         {
-            StatusLabel.Text = "Lỗi: " + ex.Message;
+            StatusLabel.Text = "Lỗi kết nối, bạn kiểm tra lại mạng nhé!";
+        }
+        catch (TaskCanceledException)
+        {
+            StatusLabel.Text = "Yêu cầu mất quá lâu, bạn thử lại sau nhé!";
+        }
+        catch (Exception ex) when (
+            ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("connect", StringComparison.OrdinalIgnoreCase) ||
+            ex.Message.Contains("internet", StringComparison.OrdinalIgnoreCase))
+        {
+            StatusLabel.Text = "Lỗi kết nối, bạn kiểm tra lại mạng nhé!";
+        }
+        catch (Exception)
+        {
+            StatusLabel.Text = "Có lỗi xảy ra, bạn thử lại sau nhé!";
         }
         finally
         {
@@ -82,9 +99,9 @@ public partial class EateryDetailPage : ContentPage
 
             await Microsoft.Maui.ApplicationModel.Map.Default.OpenAsync(location, options);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            await DisplayAlert("Lỗi", "Không thể mở bản đồ: " + ex.Message, "OK");
+            await DisplayAlert("Không mở được bản đồ", "Bạn kiểm tra lại kết nối hoặc thử lại sau nhé!", "OK");
         }
     }
 }

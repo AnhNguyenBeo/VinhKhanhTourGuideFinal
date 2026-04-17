@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Microsoft.Maui.ApplicationModel; // Thêm thư viện này để dùng AppInfo
 using Microsoft.Maui.Controls.Maps;
 using Microsoft.Maui.Devices.Sensors;
 using Microsoft.Maui.Graphics;
@@ -67,15 +68,35 @@ namespace VinhKhanhTourGuide.Views
         {
             try
             {
+                // 1. Kiểm tra trạng thái quyền hiện tại
                 var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+
+                // 2. Nếu chưa có quyền thì bật popup của hệ điều hành lên để xin
                 if (status != PermissionStatus.Granted)
                 {
                     status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
                 }
 
+                // 3. Nếu người dùng vẫn nhất quyết từ chối
                 if (status != PermissionStatus.Granted)
                 {
-                    GeofenceStatusLabel.Text = "Lỗi: Vui lòng cấp quyền GPS!";
+                    // Hiện hộp thoại giải thích và dẫn họ vào Cài đặt
+                    bool openSettings = await DisplayAlert(
+                        "Thiếu quyền Vị trí",
+                        "App cần quyền định vị GPS để quét radar và tìm các quán ăn gần bạn nhất. Bản đồ sẽ không hoạt động nếu thiếu quyền này. Bạn có muốn mở Cài đặt để cấp quyền không?",
+                        "Mở Cài đặt",
+                        "Để sau");
+
+                    if (openSettings)
+                    {
+                        // Gọi thẳng API của MAUI để mở màn hình Settings của điện thoại
+                        AppInfo.ShowSettingsUI();
+                    }
+
+                    GeofenceStatusLabel.Text = "Bản đồ đang tạm khóa vì thiếu quyền GPS.";
+                    LocationCountLabel.Text = "Chưa có dữ liệu";
+
+                    // Dừng tại đây, không tải map nữa
                     return;
                 }
 
