@@ -30,31 +30,63 @@ public partial class EateryDetailPage : ContentPage
         await Navigation.PopAsync();
     }
 
+    private void OnStopAudioClicked(object sender, EventArgs e)
+    {
+        _ttsService.Stop();
+        StatusLabel.Text = "Đã dừng phát âm thanh.";
+    }
+
     private async void OnPlayAudioClicked(object sender, EventArgs e)
     {
         StatusLabel.Text = "Đang chuẩn bị...";
-        PlayAudioButton.IsEnabled = false;
+        PlayAudioButton.IsVisible = false;
+        StopAudioButton.IsVisible = true;
 
         try
         {
             string deviceLang = CultureInfo.CurrentUICulture.Name;
 
-            StatusLabel.Text = $"Đang dịch sang ngôn ngữ máy ({deviceLang})...";
-
             var cache = await _dbContext.GetCacheAsync(_poi.Id, deviceLang);
             string audioText = cache?.TranslatedText;
 
-            if (string.IsNullOrEmpty(audioText))
+            if (string.IsNullOrWhiteSpace(audioText))
             {
-                audioText = await _translationService.TranslateAsync(_poi.Description_VN, deviceLang);
-                await _dbContext.SaveCacheAsync(new TranslationCache
+                bool needsTranslation = !deviceLang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
+
+                if (needsTranslation)
                 {
-                    PoiId = _poi.Id,
-                    LanguageCode = deviceLang,
-                    TranslatedText = audioText,
-                    CreatedAt = DateTime.Now
-                });
+                    StatusLabel.Text = $"Đang dịch sang {deviceLang}...";
+
+                    var (translated, success) = await _translationService.TranslateWithStatusAsync(
+                        _poi.Description_VN, deviceLang);
+
+                    if (success)
+                    {
+                        audioText = translated;
+
+                        await _dbContext.SaveCacheAsync(new TranslationCache
+                        {
+                            PoiId = _poi.Id,
+                            LanguageCode = deviceLang,
+                            TranslatedText = audioText,
+                            CreatedAt = DateTime.Now
+                        });
+                    }
+                    else
+                    {
+                        StatusLabel.Text = "⚠️ Không dịch được, sẽ đọc tiếng Việt...";
+                        await Task.Delay(1500);
+                        audioText = _poi.Description_VN;
+                    }
+                }
+                else
+                {
+                    audioText = _poi.Description_VN;
+                }
             }
+
+            if (string.IsNullOrWhiteSpace(audioText))
+                audioText = _poi.Description_VN;
 
             StatusLabel.Text = "🔊 Đang phát âm thanh...";
             await _ttsService.SpeakAsync(audioText);
@@ -67,12 +99,11 @@ public partial class EateryDetailPage : ContentPage
         }
         catch (TaskCanceledException)
         {
-            StatusLabel.Text = "Yêu cầu mất quá lâu, bạn thử lại sau nhé!";
+            StatusLabel.Text = "Đã dừng."; 
         }
         catch (Exception ex) when (
             ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase) ||
-            ex.Message.Contains("connect", StringComparison.OrdinalIgnoreCase) ||
-            ex.Message.Contains("internet", StringComparison.OrdinalIgnoreCase))
+            ex.Message.Contains("connect", StringComparison.OrdinalIgnoreCase))
         {
             StatusLabel.Text = "Lỗi kết nối, bạn kiểm tra lại mạng nhé!";
         }
@@ -82,7 +113,8 @@ public partial class EateryDetailPage : ContentPage
         }
         finally
         {
-            PlayAudioButton.IsEnabled = true;
+            PlayAudioButton.IsVisible = true;
+            StopAudioButton.IsVisible = false;
         }
     }
 

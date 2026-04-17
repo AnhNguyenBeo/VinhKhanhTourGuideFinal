@@ -19,14 +19,22 @@ namespace VinhKhanhTourGuide.Services
 
         public async Task<string> TranslateAsync(string textOriginal, string targetLanguageCode)
         {
+            var (result, _) = await TranslateWithStatusAsync(textOriginal, targetLanguageCode);
+            return result;
+        }
+
+        public async Task<(string text, bool success)> TranslateWithStatusAsync(
+            string textOriginal, string targetLanguageCode)
+        {
+            // Tiếng Việt → trả về luôn, coi là "thành công"
             if (targetLanguageCode.StartsWith("vi", StringComparison.OrdinalIgnoreCase))
-            {
-                return textOriginal;
-            }
+                return (textOriginal, true);
 
             try
             {
-                string prompt = $"Translate the following Vietnamese culinary description to {targetLanguageCode}. Preserve the cultural nuance. Only return the translated text without any quotes or extra explanations: {textOriginal}";
+                string prompt = $"Translate the following Vietnamese culinary description to {targetLanguageCode}. " +
+                                $"Preserve the cultural nuance. " +
+                                $"Only return the translated text without any quotes or extra explanations: {textOriginal}";
 
                 var requestBody = new { contents = new[] { new { parts = new[] { new { text = prompt } } } } };
                 string jsonContent = JsonSerializer.Serialize(requestBody);
@@ -38,7 +46,10 @@ namespace VinhKhanhTourGuide.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    return null;
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine(
+                        $"[Translation] API lỗi {(int)response.StatusCode}: {errorBody}");
+                    return (textOriginal, false); // ← báo thất bại rõ ràng
                 }
 
                 var responseJson = await response.Content.ReadAsStringAsync();
@@ -48,13 +59,21 @@ namespace VinhKhanhTourGuide.Services
                     .GetProperty("candidates")[0]
                     .GetProperty("content")
                     .GetProperty("parts")[0]
-                    .GetProperty("text").GetString();
+                    .GetProperty("text")
+                    .GetString();
 
-                return translatedText.Trim();
+                if (string.IsNullOrWhiteSpace(translatedText))
+                {
+                    System.Diagnostics.Debug.WriteLine("[Translation] Gemini trả về rỗng.");
+                    return (textOriginal, false);
+                }
+
+                return (translatedText.Trim(), true);
             }
             catch (Exception ex)
             {
-                return $"Translation error. Exception: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"[Translation] Exception: {ex.Message}");
+                return (textOriginal, false);
             }
         }
     }

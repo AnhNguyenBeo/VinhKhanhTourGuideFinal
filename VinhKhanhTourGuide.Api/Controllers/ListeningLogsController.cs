@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging; // Thêm thư viện Logger
+using Microsoft.Extensions.Logging;
 using VinhKhanhTourGuide.Api.Models;
 using VinhKhanhTourGuide.Api.Data;
 
@@ -12,9 +12,8 @@ namespace VinhKhanhTourGuide.Api.Controllers
     public class ListeningLogsController : ControllerBase
     {
         private readonly TourDbContext _context;
-        private readonly ILogger<ListeningLogsController> _logger; // Khai báo biến Logger
+        private readonly ILogger<ListeningLogsController> _logger; 
 
-        // Nhúng ILogger vào Constructor
         public ListeningLogsController(TourDbContext context, ILogger<ListeningLogsController> logger)
         {
             _context = context;

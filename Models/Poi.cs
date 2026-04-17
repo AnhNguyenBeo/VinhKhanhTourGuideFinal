@@ -20,7 +20,6 @@ namespace VinhKhanhTourGuide.Models
         ? $"{Distance:F0} m"
         : $"{Distance / 1000:F1} km";
 
-        // TÍNH NĂNG MỚI: Mức ưu tiên (Priority)
         public int Priority { get; set; }
     }
 }

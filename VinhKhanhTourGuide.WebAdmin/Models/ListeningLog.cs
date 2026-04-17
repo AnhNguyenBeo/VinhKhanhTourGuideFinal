@@ -1,10 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema; // Nhớ thêm dòng này để dùng thẻ [Table]
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VinhKhanhTourGuide.WebAdmin.Models
 {
-    [Table("ListeningLog")] // "Bùa chú" ép EF Core không được tự ý thêm chữ 's'
+    [Table("ListeningLog")]
     public class ListeningLog
     {
         [Key]

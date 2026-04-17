@@ -69,6 +69,17 @@
                         HeightRequest="86"
                         Clicked="OnPlayAudioClicked" />
 
+                <Button x:Name="StopAudioButton"
+                        Text="⏹  Dừng đọc"
+                        BackgroundColor="#EF4444"
+                        TextColor="White"
+                        FontSize="21"
+                        FontAttributes="Bold"
+                        CornerRadius="20"
+                        HeightRequest="86"
+                        IsVisible="False" 
+                        Clicked="OnStopAudioClicked" />     
+
                 <!-- Navigate -->
                 <Button Text="➤  Chỉ đường"
                         BackgroundColor="White"

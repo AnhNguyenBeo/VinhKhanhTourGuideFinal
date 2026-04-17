@@ -1,7 +1,9 @@
-﻿using System.Threading;
+﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Globalization;
 using Microsoft.Maui.Media;
-using System;
 
 namespace VinhKhanhTourGuide.Services
 {
@@ -9,15 +11,32 @@ namespace VinhKhanhTourGuide.Services
     {
         private CancellationTokenSource _cts;
 
-        public async Task SpeakAsync(string text)
+        public async Task SpeakAsync(string text, string langCode = null)
         {
-            Stop(); // Chặn giọng đọc cũ nếu đang phát
+            Stop(); 
             _cts = new CancellationTokenSource();
 
             try
             {
-                // Gọi thẳng engine mặc định của hệ điều hành
-                await TextToSpeech.Default.SpeakAsync(text, cancelToken: _cts.Token);
+                if (string.IsNullOrEmpty(langCode))
+                {
+                    langCode = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+                }
+                else if (langCode.Length >= 2)
+                {
+                    langCode = langCode.Substring(0, 2);
+                }
+
+                var locales = await TextToSpeech.Default.GetLocalesAsync();
+
+                var selectedLocale = locales.FirstOrDefault(l => l.Language.StartsWith(langCode, StringComparison.OrdinalIgnoreCase));
+
+                var options = new SpeechOptions()
+                {
+                    Locale = selectedLocale
+                };
+
+                await TextToSpeech.Default.SpeakAsync(text, options, cancelToken: _cts.Token);
             }
             catch (TaskCanceledException)
             {
@@ -33,7 +52,7 @@ namespace VinhKhanhTourGuide.Services
         {
             if (_cts?.IsCancellationRequested == false)
             {
-                _cts.Cancel(); // Ra lệnh im lặng ngay lập tức
+                _cts.Cancel();
             }
         }
     }
