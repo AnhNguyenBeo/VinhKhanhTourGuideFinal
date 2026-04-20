@@ -11,5 +11,6 @@ namespace VinhKhanhTourGuide.Api.Data
         public DbSet<Poi> Poi { get; set; }
 
         public DbSet<ListeningLog> ListeningLogs { get; set; }
+        public DbSet<VisitorActivity> VisitorActivities { get; set; }
     }
 }

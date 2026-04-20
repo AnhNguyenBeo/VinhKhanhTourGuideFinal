@@ -88,6 +88,44 @@ namespace VinhKhanhTourGuide.WebAdmin.Migrations
 
                     b.ToTable("Poi");
                 });
+
+            modelBuilder.Entity("VinhKhanhTourGuide.WebAdmin.Models.VisitorActivity", b =>
+                {
+                    b.Property<string>("AnonymousSessionId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CurrentListeningPoiId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("DistanceToNearestPoiMeters")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("LastEvent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("NearestPoiId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Platform")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("AnonymousSessionId");
+
+                    b.ToTable("VisitorActivity");
+                });
 #pragma warning restore 612, 618
         }
     }

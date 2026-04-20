@@ -34,6 +34,7 @@ namespace VinhKhanhTourGuide
             builder.Services.AddSingleton<VinhKhanhTourGuide.Services.GeofenceService>();
             builder.Services.AddSingleton<VinhKhanhTourGuide.Services.TtsService>();
             builder.Services.AddSingleton<VinhKhanhTourGuide.Services.TranslationService>();
+            builder.Services.AddSingleton<VinhKhanhTourGuide.Services.VisitorActivityService>();
             builder.Services.AddTransient<VinhKhanhTourGuide.Views.MapPage>();
 
 #if ANDROID

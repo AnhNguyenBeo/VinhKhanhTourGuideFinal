@@ -12,8 +12,9 @@ public partial class EateryDetailPage : ContentPage
     private TranslationService _translationService;
     private TtsService _ttsService;
     private AppDbContext _dbContext;
+    private VisitorActivityService _visitorActivityService;
 
-    public EateryDetailPage(Poi poi, TranslationService translationService, TtsService ttsService, AppDbContext dbContext)
+    public EateryDetailPage(Poi poi, TranslationService translationService, TtsService ttsService, AppDbContext dbContext, VisitorActivityService visitorActivityService)
     {
         InitializeComponent();
 
@@ -21,6 +22,7 @@ public partial class EateryDetailPage : ContentPage
         _translationService = translationService;
         _ttsService = ttsService;
         _dbContext = dbContext;
+        _visitorActivityService = visitorActivityService;
 
         BindingContext = _poi;
     }
@@ -33,6 +35,7 @@ public partial class EateryDetailPage : ContentPage
     private void OnStopAudioClicked(object sender, EventArgs e)
     {
         _ttsService.Stop();
+        _visitorActivityService.SetListeningState(false);
         StatusLabel.Text = "Đã dừng phát âm thanh.";
     }
 
@@ -44,6 +47,7 @@ public partial class EateryDetailPage : ContentPage
 
         try
         {
+            _visitorActivityService.SetListeningState(true, _poi.Id);
             string deviceLang = CultureInfo.CurrentUICulture.Name;
 
             var cache = await _dbContext.GetCacheAsync(_poi.Id, deviceLang);
@@ -113,6 +117,7 @@ public partial class EateryDetailPage : ContentPage
         }
         finally
         {
+            _visitorActivityService.SetListeningState(false);
             PlayAudioButton.IsVisible = true;
             StopAudioButton.IsVisible = false;
         }

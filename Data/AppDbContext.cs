@@ -37,6 +37,7 @@ namespace VinhKhanhTourGuide.Data
 
         private readonly string PoisApiUrl = $"{BaseApiUrl}/api/pois";
         private readonly string AnalyticsApiUrl = $"{BaseApiUrl}/api/listeninglogs";
+        private readonly string VisitorActivityApiUrl = $"{BaseApiUrl}/api/visitoractivity/heartbeat";
 
 
         public AppDbContext(PremiumService premiumService)
@@ -228,6 +229,35 @@ namespace VinhKhanhTourGuide.Data
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"❌ MẤT KẾT NỐI MẠNG HOẶC LỖI: {ex.Message}");
+            }
+        }
+
+        public string GetOrCreateSessionId()
+        {
+            string sessionId = Preferences.Default.Get("SessionId", "");
+
+            if (string.IsNullOrWhiteSpace(sessionId))
+            {
+                sessionId = Guid.NewGuid().ToString();
+                Preferences.Default.Set("SessionId", sessionId);
+            }
+
+            return sessionId;
+        }
+
+        public async Task SendVisitorActivityAsync(VisitorActivityPing ping)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(ping);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                using var client = CreateHttpClient();
+                await client.PostAsync(VisitorActivityApiUrl, content);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[VisitorActivity] {ex.Message}");
             }
         }
 

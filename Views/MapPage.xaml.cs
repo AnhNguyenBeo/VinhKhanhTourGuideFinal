@@ -23,6 +23,7 @@ namespace VinhKhanhTourGuide.Views
         private readonly GeofenceService _geofenceService;
         private readonly PremiumService _premiumService;
         private readonly PurchaseService _purchaseService;
+        private readonly VisitorActivityService _visitorActivityService;
 
         private List<Poi> _poiList = new();
         private bool _isSpeaking = false;
@@ -44,7 +45,8 @@ namespace VinhKhanhTourGuide.Views
                  AppDbContext dbContext,
                  GeofenceService geofenceService,
                  PremiumService premiumService,
-                 PurchaseService purchaseService)
+                 PurchaseService purchaseService,
+                 VisitorActivityService visitorActivityService)
         {
             InitializeComponent();
 
@@ -54,6 +56,7 @@ namespace VinhKhanhTourGuide.Views
             _geofenceService = geofenceService;
             _premiumService = premiumService;
             _purchaseService = purchaseService;
+            _visitorActivityService = visitorActivityService;
 
             _geofenceService.PoiDetected += OnPoiDetected;
         }
@@ -178,6 +181,8 @@ namespace VinhKhanhTourGuide.Views
 
                 GeofenceStatusLabel.Text = $"Radar đang quét {_poiList.Count} quán...";
 
+                _visitorActivityService.StartTracking(_poiList);
+                await _visitorActivityService.SendImmediateHeartbeatAsync("map_ready");
                 _geofenceService.StartRadar(_poiList);
             }
             catch (Exception ex)
@@ -196,7 +201,7 @@ namespace VinhKhanhTourGuide.Views
             if (selectedPoi == null) return;
 
             await Navigation.PushAsync(
-                new EateryDetailPage(selectedPoi, _translationService, _ttsService, _dbContext));
+                new EateryDetailPage(selectedPoi, _translationService, _ttsService, _dbContext, _visitorActivityService));
         }
 
         private async void OnPoiDetected(object? sender, (Poi targetPoi, Location userLocation) e)
@@ -209,6 +214,7 @@ namespace VinhKhanhTourGuide.Views
             var targetPoi = e.targetPoi;
             _currentLocation = e.userLocation;
             _currentListeningPoi = targetPoi;
+            _visitorActivityService.SetListeningState(true, targetPoi.Id);
 
             MainThread.BeginInvokeOnMainThread(() =>
             {
@@ -276,6 +282,7 @@ namespace VinhKhanhTourGuide.Views
             });
 
             _isSpeaking = false;
+            _visitorActivityService.SetListeningState(false);
             _geofenceService.SetProcessingState(false);
         }
 
@@ -293,6 +300,7 @@ namespace VinhKhanhTourGuide.Views
             GeofenceStatusLabel.Text = "Quét điểm gần bạn...";
             _isSpeaking = false;
 
+            _visitorActivityService.SetListeningState(false);
             _geofenceService.SetProcessingState(false);
             StopWaveAnimation();
         }
@@ -309,12 +317,7 @@ namespace VinhKhanhTourGuide.Views
 
             _listenTimer.Stop();
 
-            string sessionId = Preferences.Default.Get("SessionId", "");
-            if (string.IsNullOrEmpty(sessionId))
-            {
-                sessionId = Guid.NewGuid().ToString();
-                Preferences.Default.Set("SessionId", sessionId);
-            }
+            string sessionId = _dbContext.GetOrCreateSessionId();
 
             var log = new ListeningLog
             {

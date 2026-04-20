@@ -1,0 +1,323 @@
+@model VinhKhanhTourGuide.WebAdmin.Models.MonitoringDashboardViewModel
+
+@{
+    ViewData["Title"] = "Monitoring";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h2 class="text-danger fw-bold mb-1"><i class="fas fa-heartbeat me-2"></i>Monitoring Dashboard</h2>
+        <div class="text-muted">System health, real-time visitor activity, and narration traffic.</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/health" class="btn btn-outline-success">Health Check</a>
+        <a asp-action="Snapshot" class="btn btn-outline-primary">JSON Snapshot</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-start border-success border-4">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Active App Right Now</div>
+                <div class="display-6 fw-bold text-success">@Model.ActiveUsersNow</div>
+                <div class="text-muted small">Heartbeat seen in the last 60 seconds</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-start border-warning border-4">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Near Any POI</div>
+                <div class="display-6 fw-bold text-warning">@Model.NearPoiUsersNow</div>
+                <div class="text-muted small">Visitors close to a restaurant by GPS</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-start border-danger border-4">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Listening Now</div>
+                <div class="display-6 fw-bold text-danger">@Model.ListeningUsersNow</div>
+                <div class="text-muted small">Visitors currently in listening state</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 text-success"><i class="fas fa-broadcast-tower me-2"></i>Real-Time Active Visitors</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.ActiveVisitors.Count == 0)
+        {
+            <div class="text-muted">No visitor heartbeat has arrived in the last 60 seconds.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Session</th>
+                            <th>Status</th>
+                            <th>Nearest POI</th>
+                            <th class="text-end">Distance</th>
+                            <th>Listening POI</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var visitor in Model.ActiveVisitors)
+                        {
+                            <tr>
+                                <td><code>@visitor.AnonymousSessionId</code></td>
+                                <td>
+                                    @if (visitor.Status == "listening")
+                                    {
+                                        <span class="badge bg-danger">listening</span>
+                                    }
+                                    else if (visitor.Status == "near_poi")
+                                    {
+                                        <span class="badge bg-warning text-dark">near_poi</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">app_open</span>
+                                    }
+                                </td>
+                                <td>@(visitor.NearestPoiName ?? "-")</td>
+                                <td class="text-end">
+                                    @(visitor.DistanceToNearestPoiMeters.HasValue
+                                        ? $"{visitor.DistanceToNearestPoiMeters.Value} m"
+                                        : "-")
+                                </td>
+                                <td>@(visitor.CurrentListeningPoiName ?? "-")</td>
+                                <td>@visitor.LastSeenAt.ToString("HH:mm:ss")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Total POI</div>
+                <div class="display-6 fw-bold text-primary">@Model.TotalPois</div>
+                <div class="text-muted small">Restaurants currently available to the app</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Total Listens</div>
+                <div class="display-6 fw-bold text-success">@Model.TotalListens</div>
+                <div class="text-muted small">All narration logs collected so far</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Listens Today</div>
+                <div class="display-6 fw-bold text-warning">@Model.ListensToday</div>
+                <div class="text-muted small">Sessions received during the day</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Unique Visitors Today</div>
+                <div class="display-6 fw-bold text-dark">@Model.UniqueVisitorsToday</div>
+                <div class="text-muted small">Based on anonymous session id</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Avg Listen Duration Today</div>
+                <div class="display-6 fw-bold text-info">@Model.AverageDurationToday s</div>
+                <div class="text-muted small">Average duration per listen session</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Short Sessions Under 5s</div>
+                <div class="display-6 fw-bold text-danger">@Model.ShortListensToday</div>
+                <div class="text-muted small">Used to spot early stop or bad trigger patterns</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 col-xl-4">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Latest Listen Log</div>
+                <div class="fs-4 fw-bold text-secondary">
+                    @(Model.LastListenAt?.ToString("dd/MM/yyyy HH:mm:ss") ?? "No data yet")
+                </div>
+                <div class="text-muted small">Latest time the server accepted a narration log</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 text-danger"><i class="fas fa-bell me-2"></i>Operational Alerts</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Alerts.Count == 0)
+        {
+            <div class="alert alert-success mb-0">
+                No major alert is active right now.
+            </div>
+        }
+        else
+        {
+            <div class="list-group list-group-flush">
+                @foreach (var alert in Model.Alerts)
+                {
+                    <div class="list-group-item px-0">
+                        <span class="badge bg-danger me-2">Alert</span>@alert
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary"><i class="fas fa-chart-line me-2"></i>Hourly Traffic Today</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="hourlyTrafficChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 text-primary"><i class="fas fa-store me-2"></i>Top POI Today</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.TopPoisToday.Count == 0)
+                {
+                    <div class="text-muted">No listen activity has been recorded today.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>POI</th>
+                                    <th class="text-center">Listens</th>
+                                    <th class="text-end">Avg</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.TopPoisToday)
+                                {
+                                    <tr>
+                                        <td>@item.PoiName</td>
+                                        <td class="text-center"><span class="badge bg-primary">@item.TotalListens</span></td>
+                                        <td class="text-end">@item.AverageDuration s</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 text-primary"><i class="fas fa-stream me-2"></i>Latest 20 Listen Logs</h5>
+    </div>
+    <div class="card-body">
+        @if (Model.RecentLogs.Count == 0)
+        {
+            <div class="text-muted">No listen log is available yet.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>POI</th>
+                            <th>Session</th>
+                            <th class="text-end">Duration</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model.RecentLogs)
+                        {
+                            <tr>
+                                <td>@log.ListenAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                <td>@log.PoiName</td>
+                                <td><code>@log.AnonymousSessionId</code></td>
+                                <td class="text-end">@log.DurationSeconds s</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const hourlyLabels = @Html.Raw(Model.HourlyLabelsJson);
+    const hourlyCounts = @Html.Raw(Model.HourlyCountsJson);
+
+    const ctx = document.getElementById('hourlyTrafficChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: hourlyLabels,
+            datasets: [{
+                label: 'Listens',
+                data: hourlyCounts,
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.15)',
+                fill: true,
+                tension: 0.35,
+                pointRadius: 3,
+                pointHoverRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+</script>
