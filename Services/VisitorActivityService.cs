@@ -19,7 +19,7 @@ namespace VinhKhanhTourGuide.Services
         private bool _isListening;
         private string? _currentListeningPoiId;
 
-        private const int HeartbeatIntervalSeconds = 15;
+        private const int HeartbeatIntervalSeconds = 5;
         private const double NearPoiThresholdMeters = 100;
 
         public VisitorActivityService(AppDbContext dbContext)

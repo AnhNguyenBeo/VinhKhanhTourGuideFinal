@@ -1,9 +1,104 @@
-﻿@model List<VinhKhanhTourGuide.WebAdmin.Models.AnalyticsViewModel>
+@model VinhKhanhTourGuide.WebAdmin.Models.AnalyticsDashboardViewModel
 @{
     ViewData["Title"] = "Báo cáo phân tích dữ liệu";
 }
 
 <h2 class="mb-4 text-primary">📊 Phân Tích Dữ Liệu Nghe Thuyết Minh</h2>
+
+@if (TempData["AnalyticsMessage"] is string analyticsMessage)
+{
+    <div class="alert alert-info shadow-sm" role="alert">
+        @analyticsMessage
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    <div class="col-lg-4">
+        <div class="card shadow h-100 border-start border-success border-4">
+            <div class="card-body">
+                <div class="text-muted small mb-2">Active App Right Now</div>
+                <div id="activeUsersNow" class="display-5 fw-bold text-success">@Model.ActiveUsersNow</div>
+                <div class="text-muted small">Heartbeat seen in the last @Model.ActiveWindowSeconds seconds</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card shadow h-100">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h6 class="m-0 font-weight-bold text-success">Real-Time Active Visitors</h6>
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <div class="small text-muted">
+                            Auto refresh every 5s
+                            <span class="mx-1">|</span>
+                            Last refresh:
+                            <span id="snapshotGeneratedAt">@Model.SnapshotGeneratedAt.ToString("HH:mm:ss")</span>
+                        </div>
+                        <form method="post" action="@Url.Action("ClearActiveVisitors", "Analytics")" class="m-0">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                Clear Active Sessions
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div id="activeVisitorsSection" class="card-body">
+                @if (Model.ActiveVisitors.Count == 0)
+                {
+                    <div class="text-muted">No visitor heartbeat has arrived in the last @Model.ActiveWindowSeconds seconds.</div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Session</th>
+                                    <th>Status</th>
+                                    <th>Nearest POI</th>
+                                    <th class="text-end">Distance</th>
+                                    <th>Listening POI</th>
+                                    <th>Last Seen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var visitor in Model.ActiveVisitors)
+                                {
+                                    <tr>
+                                        <td><code>@visitor.AnonymousSessionId</code></td>
+                                        <td>
+                                            @if (visitor.Status == "listening")
+                                            {
+                                                <span class="badge bg-danger">listening</span>
+                                            }
+                                            else if (visitor.Status == "near_poi")
+                                            {
+                                                <span class="badge bg-warning text-dark">near_poi</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">app_open</span>
+                                            }
+                                        </td>
+                                        <td>@(visitor.NearestPoiName ?? "-")</td>
+                                        <td class="text-end">
+                                            @(visitor.DistanceToNearestPoiMeters.HasValue
+                                                ? $"{visitor.DistanceToNearestPoiMeters.Value} m"
+                                                : "-")
+                                        </td>
+                                        <td>@(visitor.CurrentListeningPoiName ?? "-")</td>
+                                        <td>@visitor.LastSeenAt.ToString("HH:mm:ss")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="row">
     <div class="col-md-8">
@@ -32,13 +127,13 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
+                        @foreach (var item in Model.PoiStats)
                         {
-                                <tr>
-                                    <td>@item.PoiName</td>
-                                    <td><span class="badge bg-success">@item.TotalListens</span></td>
-                                    <td>@item.AverageDuration s</td>
-                                </tr>
+                            <tr>
+                                <td>@item.PoiName</td>
+                                <td><span class="badge bg-success">@item.TotalListens</span></td>
+                                <td>@item.AverageDuration s</td>
+                            </tr>
                         }
                     </tbody>
                 </table>
@@ -67,14 +162,11 @@
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 
 <script>
-    // ==========================================
-    // 1. VẼ BIỂU ĐỒ CỘT
-    // ==========================================
-    var labels = @Html.Raw(Json.Serialize(Model.Select(m => m.PoiName)));
-    var dataListens = @Html.Raw(Json.Serialize(Model.Select(m => m.TotalListens)));
+    var labels = @Html.Raw(Json.Serialize(Model.PoiStats.Select(m => m.PoiName)));
+    var dataListens = @Html.Raw(Json.Serialize(Model.PoiStats.Select(m => m.TotalListens)));
 
     var ctx = document.getElementById('topPoisChart').getContext('2d');
-    var myChart = new Chart(ctx, {
+    new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
@@ -93,28 +185,148 @@
         }
     });
 
-    // ==========================================
-    // 2. VẼ BẢN ĐỒ NHIỆT (HEAT MAP)
-    // ==========================================
-    // Khởi tạo bản đồ ngay trung tâm đường Vĩnh Khánh
     var map = L.map('heatmapContainer').setView([10.7610, 106.7030], 16);
 
-    // Kéo dữ liệu đường phố từ OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(map);
 
-    // Lấy dữ liệu tọa độ từ C# (An toàn: nếu rỗng thì mảng [])
-    var heatData = @Html.Raw(ViewBag.HeatmapData != null ? ViewBag.HeatmapData : "[]");
+    var heatData = @Html.Raw(Model.HeatmapDataJson);
 
-    // Nếu có dữ liệu thì tiến hành rải màu nhiệt lên bản đồ
     if (heatData && heatData.length > 0) {
-        var heat = L.heatLayer(heatData, {
-            radius: 25,     // Độ lan rộng của quầng sáng
-            blur: 15,       // Độ mờ nhòe (càng cao càng giống quầng nhiệt)
+        L.heatLayer(heatData, {
+            radius: 25,
+            blur: 15,
             maxZoom: 17,
-            gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'} // Màu sắc tăng dần
+            gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}
         }).addTo(map);
     }
+
+    const activeVisitorsSnapshotUrl = '@Url.Action("Snapshot", "Analytics")';
+    const activeVisitorsRefreshIntervalMs = 5000;
+    let activeWindowSeconds = @Model.ActiveWindowSeconds;
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    function formatDistance(distance) {
+        if (distance === null || distance === undefined) {
+            return '-';
+        }
+
+        return `${distance} m`;
+    }
+
+    function formatLastSeen(value) {
+        if (!value) {
+            return '-';
+        }
+
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+            return '-';
+        }
+
+        return date.toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        });
+    }
+
+    function getStatusBadge(status) {
+        if (status === 'listening') {
+            return '<span class="badge bg-danger">listening</span>';
+        }
+
+        if (status === 'near_poi') {
+            return '<span class="badge bg-warning text-dark">near_poi</span>';
+        }
+
+        return '<span class="badge bg-success">app_open</span>';
+    }
+
+    function renderActiveVisitors(activeVisitors) {
+        const section = document.getElementById('activeVisitorsSection');
+        if (!section) {
+            return;
+        }
+
+        if (!Array.isArray(activeVisitors) || activeVisitors.length === 0) {
+            section.innerHTML = `<div class="text-muted">No visitor heartbeat has arrived in the last ${activeWindowSeconds} seconds.</div>`;
+            return;
+        }
+
+        const rows = activeVisitors.map(visitor => `
+            <tr>
+                <td><code>${escapeHtml(visitor.anonymousSessionId ?? 'N/A')}</code></td>
+                <td>${getStatusBadge(visitor.status)}</td>
+                <td>${escapeHtml(visitor.nearestPoiName ?? '-')}</td>
+                <td class="text-end">${escapeHtml(formatDistance(visitor.distanceToNearestPoiMeters))}</td>
+                <td>${escapeHtml(visitor.currentListeningPoiName ?? '-')}</td>
+                <td>${escapeHtml(formatLastSeen(visitor.lastSeenAt))}</td>
+            </tr>
+        `).join('');
+
+        section.innerHTML = `
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Session</th>
+                            <th>Status</th>
+                            <th>Nearest POI</th>
+                            <th class="text-end">Distance</th>
+                            <th>Listening POI</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    async function refreshActiveVisitorsAsync() {
+        try {
+            const response = await fetch(activeVisitorsSnapshotUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                cache: 'no-store'
+            });
+
+            if (!response.ok) {
+                return;
+            }
+
+            const snapshot = await response.json();
+            const activeUsersElement = document.getElementById('activeUsersNow');
+            const snapshotGeneratedAtElement = document.getElementById('snapshotGeneratedAt');
+
+            activeWindowSeconds = snapshot.activeWindowSeconds ?? activeWindowSeconds;
+
+            if (activeUsersElement) {
+                activeUsersElement.textContent = snapshot.activeUsersNow ?? '0';
+            }
+
+            if (snapshotGeneratedAtElement) {
+                snapshotGeneratedAtElement.textContent = formatLastSeen(snapshot.snapshotGeneratedAt);
+            }
+
+            renderActiveVisitors(snapshot.activeVisitors);
+        } catch {
+            // Giữ nguyên dữ liệu cũ nếu snapshot tạm thời lỗi.
+        }
+    }
+
+    window.setInterval(refreshActiveVisitorsAsync, activeVisitorsRefreshIntervalMs);
 </script>

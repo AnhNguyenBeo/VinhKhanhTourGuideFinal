@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using VinhKhanhTourGuide.Models;
 using VinhKhanhTourGuide.Services;
-using Microsoft.Maui.Devices; // Cần thiết để lấy DeviceInfo
 
 namespace VinhKhanhTourGuide.Data
 {
@@ -22,18 +21,11 @@ namespace VinhKhanhTourGuide.Data
         private const string DatabaseFileName = "VinhKhanhGuide.db3";
 
         // =================================================================
-        // CẤU HÌNH API URL ĐỘNG THEO MÔI TRƯỜNG
+        // CẤU HÌNH API URL
         // =================================================================
-#if DEBUG
-        // Đang chạy test (Debug): Tự động đổi IP dựa theo nền tảng
-        private static readonly string BaseApiUrl = DeviceInfo.Platform == DevicePlatform.Android
-            ? "http://10.0.2.2:5099"
-            : "http://localhost:5099";
-#else
-        // Khi build bản Release (Production): Điền tên miền server thật của bạn vào đây
-        // VD: "https://api.vinhkhanhtour.com"
+        // Khi test tren dien thoai that, app can tro den domain public tren Somee.
+        // Neu muon quay lai local, doi BaseApiUrl ve localhost/10.0.2.2 sau.
         private static readonly string BaseApiUrl = "http://vinhkhanh.somee.com";
-#endif
 
         private readonly string PoisApiUrl = $"{BaseApiUrl}/api/pois";
         private readonly string AnalyticsApiUrl = $"{BaseApiUrl}/api/listeninglogs";
