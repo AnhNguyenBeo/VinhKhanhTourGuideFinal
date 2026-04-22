@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using System.Text.Json;
 using VinhKhanhTourGuide.Api.Data;
 using VinhKhanhTourGuide.Api.Services;
 
@@ -10,9 +11,15 @@ builder.WebHost.UseUrls("http://0.0.0.0:5099");
 string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<TourDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddHttpClient();
+builder.Services.AddMemoryCache();
 builder.Services.AddScoped<SharedTranslationService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -123,9 +130,9 @@ END
 static async Task EnsureTranslationCacheTableAsync(TourDbContext db)
 {
     const string sql = """
-IF OBJECT_ID(N'[TranslationCache]', N'U') IS NULL
+IF OBJECT_ID(N'[dbo].[TranslationCache]', N'U') IS NULL
 BEGIN
-    CREATE TABLE [TranslationCache]
+    CREATE TABLE [dbo].[TranslationCache]
     (
         [Id] INT IDENTITY(1,1) NOT NULL,
         [PoiId] NVARCHAR(256) NOT NULL,
@@ -140,11 +147,11 @@ IF NOT EXISTS (
     SELECT 1
     FROM sys.indexes
     WHERE name = N'IX_TranslationCache_PoiId_LanguageCode'
-      AND object_id = OBJECT_ID(N'[TranslationCache]')
+      AND object_id = OBJECT_ID(N'[dbo].[TranslationCache]')
 )
 BEGIN
     CREATE UNIQUE INDEX [IX_TranslationCache_PoiId_LanguageCode]
-    ON [TranslationCache] ([PoiId], [LanguageCode]);
+    ON [dbo].[TranslationCache] ([PoiId], [LanguageCode]);
 END
 """;
 

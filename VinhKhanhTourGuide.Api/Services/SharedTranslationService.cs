@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.EntityFrameworkCore;
 using VinhKhanhTourGuide.Api.Data;
 using VinhKhanhTourGuide.Api.Models;
@@ -15,17 +16,20 @@ namespace VinhKhanhTourGuide.Api.Services
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly ILogger<SharedTranslationService> _logger;
+        private readonly IMemoryCache _memoryCache;
 
         public SharedTranslationService(
             TourDbContext dbContext,
             IHttpClientFactory httpClientFactory,
             IConfiguration configuration,
-            ILogger<SharedTranslationService> logger)
+            ILogger<SharedTranslationService> logger,
+            IMemoryCache memoryCache)
         {
             _dbContext = dbContext;
             _httpClientFactory = httpClientFactory;
             _configuration = configuration;
             _logger = logger;
+            _memoryCache = memoryCache;
         }
 
         public async Task<TranslationResolveResponse> ResolveAsync(string poiId, string sourceText, string targetLanguageCode)
@@ -55,9 +59,23 @@ namespace VinhKhanhTourGuide.Api.Services
                 };
             }
 
-            TranslationCache? existingCache = await FindCacheAsync(poiId, normalizedLanguageCode);
+            string memoryCacheKey = BuildMemoryCacheKey(poiId, normalizedLanguageCode);
+            if (_memoryCache.TryGetValue(memoryCacheKey, out string? memoryHitText) &&
+                !string.IsNullOrWhiteSpace(memoryHitText))
+            {
+                return new TranslationResolveResponse
+                {
+                    Text = memoryHitText,
+                    LanguageCode = normalizedLanguageCode,
+                    CacheHit = true,
+                    Success = true
+                };
+            }
+
+            TranslationCache? existingCache = await TryFindCacheAsync(poiId, normalizedLanguageCode);
             if (existingCache != null)
             {
+                SetMemoryCache(memoryCacheKey, existingCache.TranslatedText);
                 return BuildCacheHitResponse(existingCache);
             }
 
@@ -67,9 +85,10 @@ namespace VinhKhanhTourGuide.Api.Services
             await translationLock.WaitAsync();
             try
             {
-                existingCache = await FindCacheAsync(poiId, normalizedLanguageCode);
+                existingCache = await TryFindCacheAsync(poiId, normalizedLanguageCode);
                 if (existingCache != null)
                 {
+                    SetMemoryCache(memoryCacheKey, existingCache.TranslatedText);
                     return BuildCacheHitResponse(existingCache);
                 }
 
@@ -93,22 +112,36 @@ namespace VinhKhanhTourGuide.Api.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                _dbContext.TranslationCaches.Add(newCache);
-
                 try
                 {
+                    _dbContext.TranslationCaches.Add(newCache);
                     await _dbContext.SaveChangesAsync();
                 }
                 catch (DbUpdateException dbEx)
                 {
                     _logger.LogWarning(dbEx, "Race condition khi luu cache dich cho {PoiId} - {LanguageCode}.", poiId, normalizedLanguageCode);
-                    existingCache = await FindCacheAsync(poiId, normalizedLanguageCode);
+                    existingCache = await TryFindCacheAsync(poiId, normalizedLanguageCode);
 
                     if (existingCache != null)
                     {
+                        SetMemoryCache(memoryCacheKey, existingCache.TranslatedText);
                         return BuildCacheHitResponse(existingCache);
                     }
 
+                    SetMemoryCache(memoryCacheKey, translatedText.Trim());
+                    return new TranslationResolveResponse
+                    {
+                        Text = translatedText.Trim(),
+                        LanguageCode = normalizedLanguageCode,
+                        CacheHit = false,
+                        Success = true
+                    };
+                }
+                catch (Exception ex)
+                {
+                    // Cache la toi uu, khong duoc phep lam hong luong dich chinh.
+                    _logger.LogWarning(ex, "Khong the luu translation cache cho {PoiId} - {LanguageCode}.", poiId, normalizedLanguageCode);
+                    SetMemoryCache(memoryCacheKey, translatedText.Trim());
                     return new TranslationResolveResponse
                     {
                         Text = translatedText.Trim(),
@@ -118,6 +151,7 @@ namespace VinhKhanhTourGuide.Api.Services
                     };
                 }
 
+                SetMemoryCache(memoryCacheKey, newCache.TranslatedText);
                 return new TranslationResolveResponse
                 {
                     Text = newCache.TranslatedText,
@@ -132,11 +166,37 @@ namespace VinhKhanhTourGuide.Api.Services
             }
         }
 
-        private async Task<TranslationCache?> FindCacheAsync(string poiId, string normalizedLanguageCode)
+        private void SetMemoryCache(string key, string translatedText)
         {
-            return await _dbContext.TranslationCaches
-                .AsNoTracking()
-                .FirstOrDefaultAsync(cache => cache.PoiId == poiId && cache.LanguageCode == normalizedLanguageCode);
+            _memoryCache.Set(
+                key,
+                translatedText,
+                new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(12),
+                    SlidingExpiration = TimeSpan.FromHours(2)
+                });
+        }
+
+        private static string BuildMemoryCacheKey(string poiId, string languageCode)
+        {
+            return $"translation:{poiId}:{languageCode}";
+        }
+
+        private async Task<TranslationCache?> TryFindCacheAsync(string poiId, string normalizedLanguageCode)
+        {
+            try
+            {
+                return await _dbContext.TranslationCaches
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(cache => cache.PoiId == poiId && cache.LanguageCode == normalizedLanguageCode);
+            }
+            catch (Exception ex)
+            {
+                // Loi DB/cache khong duoc phep danh sap endpoint dich.
+                _logger.LogWarning(ex, "Khong the doc TranslationCache cho {PoiId} - {LanguageCode}.", poiId, normalizedLanguageCode);
+                return null;
+            }
         }
 
         private static TranslationResolveResponse BuildCacheHitResponse(TranslationCache cache)
@@ -186,24 +246,52 @@ namespace VinhKhanhTourGuide.Api.Services
             string url =
                 $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}";
 
-            using HttpResponseMessage response = await client.PostAsync(url, content);
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                string errorBody = await response.Content.ReadAsStringAsync();
-                _logger.LogWarning("Gemini translation fail {StatusCode}: {Body}", (int)response.StatusCode, errorBody);
+                using HttpResponseMessage response = await client.PostAsync(url, content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogWarning("Gemini translation fail {StatusCode}: {Body}", (int)response.StatusCode, errorBody);
+                    return null;
+                }
+
+                string responseJson = await response.Content.ReadAsStringAsync();
+                using JsonDocument document = JsonDocument.Parse(responseJson);
+
+                if (!document.RootElement.TryGetProperty("candidates", out JsonElement candidates) ||
+                    candidates.ValueKind != JsonValueKind.Array ||
+                    candidates.GetArrayLength() == 0)
+                {
+                    _logger.LogWarning("Gemini response khong co candidates hop le: {Body}", responseJson);
+                    return null;
+                }
+
+                JsonElement firstCandidate = candidates[0];
+                if (!firstCandidate.TryGetProperty("content", out JsonElement contentElement) ||
+                    !contentElement.TryGetProperty("parts", out JsonElement partsElement) ||
+                    partsElement.ValueKind != JsonValueKind.Array ||
+                    partsElement.GetArrayLength() == 0)
+                {
+                    _logger.LogWarning("Gemini response khong co content/parts hop le: {Body}", responseJson);
+                    return null;
+                }
+
+                JsonElement firstPart = partsElement[0];
+                if (!firstPart.TryGetProperty("text", out JsonElement textElement))
+                {
+                    _logger.LogWarning("Gemini response khong co truong text: {Body}", responseJson);
+                    return null;
+                }
+
+                return textElement.GetString();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Gemini translation exception.");
                 return null;
             }
-
-            string responseJson = await response.Content.ReadAsStringAsync();
-            using JsonDocument document = JsonDocument.Parse(responseJson);
-
-            return document.RootElement
-                .GetProperty("candidates")[0]
-                .GetProperty("content")
-                .GetProperty("parts")[0]
-                .GetProperty("text")
-                .GetString();
         }
 
         private static string NormalizeLanguageCode(string? languageCode)

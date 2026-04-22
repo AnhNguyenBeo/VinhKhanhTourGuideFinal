@@ -19,6 +19,7 @@ namespace VinhKhanhTourGuide.Api.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<TranslationCache>()
+                .ToTable("TranslationCache")
                 .HasIndex(cache => new { cache.PoiId, cache.LanguageCode })
                 .IsUnique();
         }

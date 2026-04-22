@@ -56,21 +56,24 @@ public partial class EateryDetailPage : ContentPage
                 StatusLabel.Text = $"Đang lấy bản dịch {deviceLang}...";
             }
 
-            var (audioText, success) = await _translationService.ResolvePoiNarrationAsync(_poi, deviceLang);
+            var (audioText, translationSuccess) = await _translationService.ResolvePoiNarrationAsync(_poi, deviceLang);
 
-            if (needsTranslation && !success)
+            if (needsTranslation && !translationSuccess)
             {
-                StatusLabel.Text = "⚠️ Không dịch được, sẽ đọc tiếng Việt...";
-                await Task.Delay(1500);
+                StatusLabel.Text = "⚠️ Không dịch được. Vui lòng thử lại sau.";
+                return;
             }
 
             if (string.IsNullOrWhiteSpace(audioText))
             {
-                audioText = _poi.Description_VN;
+                StatusLabel.Text = "Không có nội dung để phát.";
+                return;
             }
 
+            string speechLanguage = needsTranslation ? deviceLang : "vi";
+
             StatusLabel.Text = "🔊 Đang phát âm thanh...";
-            await _ttsService.SpeakAsync(audioText);
+            await _ttsService.SpeakAsync(audioText, speechLanguage);
 
             StatusLabel.Text = "Đã phát xong.";
         }

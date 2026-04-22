@@ -34,7 +34,7 @@ namespace VinhKhanhTourGuide.Services
 
             if (!success || string.IsNullOrWhiteSpace(translatedText))
             {
-                return (poi.Description_VN, false);
+                return (string.Empty, false);
             }
 
             await _dbContext.SaveCacheAsync(new TranslationCache
@@ -46,6 +46,48 @@ namespace VinhKhanhTourGuide.Services
             });
 
             return (translatedText, true);
+        }
+
+        public async Task PrefetchNarrationsAsync(IEnumerable<Poi> pois, string targetLanguageCode, int maxCount = 6)
+        {
+            string normalizedLanguageCode = NormalizeLanguageCode(targetLanguageCode);
+            if (normalizedLanguageCode == "vi")
+            {
+                return;
+            }
+
+            int warmed = 0;
+            foreach (Poi poi in pois)
+            {
+                if (warmed >= maxCount)
+                {
+                    break;
+                }
+
+                if (poi == null ||
+                    string.IsNullOrWhiteSpace(poi.Id) ||
+                    string.IsNullOrWhiteSpace(poi.Description_VN))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    TranslationCache? localCache = await _dbContext.GetCacheAsync(poi.Id, normalizedLanguageCode);
+                    if (localCache != null && !string.IsNullOrWhiteSpace(localCache.TranslatedText))
+                    {
+                        warmed++;
+                        continue;
+                    }
+
+                    await ResolvePoiNarrationAsync(poi, normalizedLanguageCode);
+                    warmed++;
+                }
+                catch
+                {
+                    // Prefetch khong duoc phep lam anh huong luong chinh.
+                }
+            }
         }
 
         private static string NormalizeLanguageCode(string? languageCode)

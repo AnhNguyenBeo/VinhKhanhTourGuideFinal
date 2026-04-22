@@ -181,6 +181,12 @@ namespace VinhKhanhTourGuide.Views
 
                 GeofenceStatusLabel.Text = $"Radar đang quét {_poiList.Count} quán...";
 
+                // Warm cache dịch nền để lần bấm nghe đầu tiên phản hồi nhanh hơn.
+                _ = Task.Run(() => _translationService.PrefetchNarrationsAsync(
+                    _poiList,
+                    CultureInfo.CurrentUICulture.Name,
+                    maxCount: 8));
+
                 _visitorActivityService.StartTracking(_poiList);
                 await _visitorActivityService.SendImmediateHeartbeatAsync("map_ready");
                 _geofenceService.StartRadar(_poiList);
@@ -237,16 +243,37 @@ namespace VinhKhanhTourGuide.Views
             });
 
             string lang = CultureInfo.CurrentUICulture.Name;
-            var (speechText, success) = await _translationService.ResolvePoiNarrationAsync(targetPoi, lang);
+            var (speechText, translationSuccess) = await _translationService.ResolvePoiNarrationAsync(targetPoi, lang);
 
-            if (!success || string.IsNullOrWhiteSpace(speechText))
+            bool needsTranslation = !lang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
+            if (needsTranslation && !translationSuccess)
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    GeofenceStatusLabel.Text = "Không dịch được thuyết minh cho ngôn ngữ hiện tại.";
+                    StopAudioBtn.IsVisible = false;
+                    NowPlayingCard.IsVisible = false;
+                    StatusPill.IsVisible = true;
+                    VinhKhanhMap.MapElements.Clear();
+                    StopWaveAnimation();
+                });
+
+                _isSpeaking = false;
+                _visitorActivityService.SetListeningState(false);
+                _geofenceService.SetProcessingState(false);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(speechText))
             {
                 speechText = targetPoi.Description_VN;
             }
 
+            string speechLanguage = needsTranslation ? lang : "vi";
+
             _listenTimer.Restart();
 
-            await _ttsService.SpeakAsync(speechText);
+            await _ttsService.SpeakAsync(speechText, speechLanguage);
 
             SendAnalyticsData();
 

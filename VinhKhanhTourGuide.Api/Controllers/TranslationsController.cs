@@ -31,12 +31,25 @@ namespace VinhKhanhTourGuide.Api.Controllers
                 });
             }
 
-            TranslationResolveResponse response = await _sharedTranslationService.ResolveAsync(
-                request.PoiId,
-                request.SourceText,
-                request.TargetLanguageCode);
+            try
+            {
+                TranslationResolveResponse response = await _sharedTranslationService.ResolveAsync(
+                    request.PoiId!,
+                    request.SourceText!,
+                    request.TargetLanguageCode ?? "vi");
 
-            return Ok(response);
+                return Ok(response);
+            }
+            catch
+            {
+                return Ok(new TranslationResolveResponse
+                {
+                    Text = request.SourceText ?? string.Empty,
+                    LanguageCode = request.TargetLanguageCode ?? "vi",
+                    CacheHit = false,
+                    Success = false
+                });
+            }
         }
     }
 }
