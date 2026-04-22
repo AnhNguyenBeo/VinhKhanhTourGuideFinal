@@ -12,5 +12,15 @@ namespace VinhKhanhTourGuide.Api.Data
 
         public DbSet<ListeningLog> ListeningLogs { get; set; }
         public DbSet<VisitorActivity> VisitorActivities { get; set; }
+        public DbSet<TranslationCache> TranslationCaches { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<TranslationCache>()
+                .HasIndex(cache => new { cache.PoiId, cache.LanguageCode })
+                .IsUnique();
+        }
     }
 }

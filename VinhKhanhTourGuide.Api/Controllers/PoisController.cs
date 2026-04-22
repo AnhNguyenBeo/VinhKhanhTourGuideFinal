@@ -9,10 +9,12 @@ namespace VinhKhanhTourGuide.Api.Controllers
     public class PoisController : ControllerBase
     {
         private readonly TourDbContext _context;
+        private readonly string? _publicImageBaseUrl;
 
-        public PoisController(TourDbContext context)
+        public PoisController(TourDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _publicImageBaseUrl = configuration["PublicAssets:ImageBaseUrl"]?.TrimEnd('/');
         }
 
         // Lệnh GET: Lấy toàn bộ danh sách quán ăn
@@ -20,7 +22,10 @@ namespace VinhKhanhTourGuide.Api.Controllers
         public async Task<IActionResult> GetAllPois()
         {
             var scheme = Request.Host.Value.Contains("ngrok-free") ? "https" : Request.Scheme;
-            var baseUrl = $"{scheme}://{Request.Host}{Request.PathBase}";
+            var fallbackBaseUrl = $"{scheme}://{Request.Host}{Request.PathBase}".TrimEnd('/');
+            var imageBaseUrl = string.IsNullOrWhiteSpace(_publicImageBaseUrl)
+                ? fallbackBaseUrl
+                : _publicImageBaseUrl;
 
             var pois = await _context.Poi
                 .OrderBy(p => p.Priority)
@@ -30,7 +35,7 @@ namespace VinhKhanhTourGuide.Api.Controllers
             {
                 poi.ImageUrl = string.IsNullOrWhiteSpace(poi.ImageName)
                     ? null
-                    : $"{baseUrl}/images/{poi.ImageName}";
+                    : $"{imageBaseUrl}/images/{poi.ImageName}";
             }
 
             return Ok(pois);

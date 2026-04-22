@@ -29,6 +29,7 @@ namespace VinhKhanhTourGuide.WebAdmin.Controllers
             var result = pois.Select(p => new {
                 p.Id,
                 p.Name,
+                p.ImageName,
                 p.Latitude,
                 p.Longitude,
                 p.Description_VN,

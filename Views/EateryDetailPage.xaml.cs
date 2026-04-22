@@ -49,48 +49,25 @@ public partial class EateryDetailPage : ContentPage
         {
             _visitorActivityService.SetListeningState(true, _poi.Id);
             string deviceLang = CultureInfo.CurrentUICulture.Name;
+            bool needsTranslation = !deviceLang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
 
-            var cache = await _dbContext.GetCacheAsync(_poi.Id, deviceLang);
-            string audioText = cache?.TranslatedText;
-
-            if (string.IsNullOrWhiteSpace(audioText))
+            if (needsTranslation)
             {
-                bool needsTranslation = !deviceLang.StartsWith("vi", StringComparison.OrdinalIgnoreCase);
+                StatusLabel.Text = $"Đang lấy bản dịch {deviceLang}...";
+            }
 
-                if (needsTranslation)
-                {
-                    StatusLabel.Text = $"Đang dịch sang {deviceLang}...";
+            var (audioText, success) = await _translationService.ResolvePoiNarrationAsync(_poi, deviceLang);
 
-                    var (translated, success) = await _translationService.TranslateWithStatusAsync(
-                        _poi.Description_VN, deviceLang);
-
-                    if (success)
-                    {
-                        audioText = translated;
-
-                        await _dbContext.SaveCacheAsync(new TranslationCache
-                        {
-                            PoiId = _poi.Id,
-                            LanguageCode = deviceLang,
-                            TranslatedText = audioText,
-                            CreatedAt = DateTime.Now
-                        });
-                    }
-                    else
-                    {
-                        StatusLabel.Text = "⚠️ Không dịch được, sẽ đọc tiếng Việt...";
-                        await Task.Delay(1500);
-                        audioText = _poi.Description_VN;
-                    }
-                }
-                else
-                {
-                    audioText = _poi.Description_VN;
-                }
+            if (needsTranslation && !success)
+            {
+                StatusLabel.Text = "⚠️ Không dịch được, sẽ đọc tiếng Việt...";
+                await Task.Delay(1500);
             }
 
             if (string.IsNullOrWhiteSpace(audioText))
+            {
                 audioText = _poi.Description_VN;
+            }
 
             StatusLabel.Text = "🔊 Đang phát âm thanh...";
             await _ttsService.SpeakAsync(audioText);

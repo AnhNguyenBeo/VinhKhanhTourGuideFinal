@@ -1,17 +1,18 @@
-﻿using Microsoft.Extensions.FileProviders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using VinhKhanhTourGuide.Api.Data;
+using VinhKhanhTourGuide.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.UseUrls("http://0.0.0.0:5099");
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<TourDbContext>(options => options.UseSqlServer(connectionString));
-// Add services to the container.
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<SharedTranslationService>();
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -23,30 +24,38 @@ using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<TourDbContext>();
         await EnsureVisitorActivityTableAsync(db);
+        await EnsureTranslationCacheTableAsync(db);
     }
     catch (Exception ex)
     {
-        app.Logger.LogWarning(ex, "Khong the dam bao bang VisitorActivity khi khoi dong API.");
+        app.Logger.LogWarning(ex, "Khong the dam bao cac bang monitor/translation khi khoi dong API.");
     }
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.UseStaticFiles();
-var webAdminImagesPath = Path.Combine(builder.Environment.ContentRootPath, "..", "VinhKhanhTourGuide.WebAdmin", "wwwroot", "images");
+
+string webAdminImagesPath = Path.Combine(
+    builder.Environment.ContentRootPath,
+    "..",
+    "VinhKhanhTourGuide.WebAdmin",
+    "wwwroot",
+    "images");
 
 if (Directory.Exists(webAdminImagesPath))
 {
     app.UseStaticFiles(new StaticFileOptions
     {
         FileProvider = new PhysicalFileProvider(webAdminImagesPath),
-        RequestPath = "/images" // Bất cứ khi nào App gọi "/images/...", API sẽ tự chạy sang WebAdmin lấy
+        RequestPath = "/images"
     });
 }
+
 app.UseAuthorization();
 
 app.MapGet("/health", async (TourDbContext db) =>
@@ -105,6 +114,37 @@ BEGIN
         [LastSeenAt] DATETIME2 NOT NULL,
         CONSTRAINT [PK_VisitorActivity] PRIMARY KEY ([AnonymousSessionId])
     );
+END
+""";
+
+    await db.Database.ExecuteSqlRawAsync(sql);
+}
+
+static async Task EnsureTranslationCacheTableAsync(TourDbContext db)
+{
+    const string sql = """
+IF OBJECT_ID(N'[TranslationCache]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [TranslationCache]
+    (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+        [PoiId] NVARCHAR(256) NOT NULL,
+        [LanguageCode] NVARCHAR(16) NOT NULL,
+        [TranslatedText] NVARCHAR(MAX) NOT NULL,
+        [CreatedAt] DATETIME2 NOT NULL,
+        CONSTRAINT [PK_TranslationCache] PRIMARY KEY ([Id])
+    );
+END
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'IX_TranslationCache_PoiId_LanguageCode'
+      AND object_id = OBJECT_ID(N'[TranslationCache]')
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_TranslationCache_PoiId_LanguageCode]
+    ON [TranslationCache] ([PoiId], [LanguageCode]);
 END
 """;
 

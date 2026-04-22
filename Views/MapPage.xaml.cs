@@ -237,30 +237,11 @@ namespace VinhKhanhTourGuide.Views
             });
 
             string lang = CultureInfo.CurrentUICulture.Name;
-            var cache = await _dbContext.GetCacheAsync(targetPoi.Id, lang);
-            string speechText = cache?.TranslatedText ?? string.Empty;
+            var (speechText, success) = await _translationService.ResolvePoiNarrationAsync(targetPoi, lang);
 
-            if (string.IsNullOrEmpty(speechText))
+            if (!success || string.IsNullOrWhiteSpace(speechText))
             {
-                // Cố gắng dịch thử
-                speechText = await _translationService.TranslateAsync(targetPoi.Description_VN, lang);
-
-                // KIỂM TRA LỖI: Nếu API rớt mạng (null) hoặc trả về chuỗi báo lỗi, dùng luôn tiếng Việt
-                if (string.IsNullOrEmpty(speechText) || speechText.StartsWith("Translation error"))
-                {
-                    speechText = targetPoi.Description_VN;
-                }
-                else
-                {
-                    // Nếu dịch thành công trơn tru thì mới lưu vào Database để xài lại
-                    await _dbContext.SaveCacheAsync(new TranslationCache
-                    {
-                        PoiId = targetPoi.Id,
-                        LanguageCode = lang,
-                        TranslatedText = speechText,
-                        CreatedAt = DateTime.Now
-                    });
-                }
+                speechText = targetPoi.Description_VN;
             }
 
             _listenTimer.Restart();

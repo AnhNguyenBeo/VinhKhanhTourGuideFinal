@@ -30,6 +30,7 @@ namespace VinhKhanhTourGuide.Data
         private readonly string PoisApiUrl = $"{BaseApiUrl}/api/pois";
         private readonly string AnalyticsApiUrl = $"{BaseApiUrl}/api/listeninglogs";
         private readonly string VisitorActivityApiUrl = $"{BaseApiUrl}/api/visitoractivity/heartbeat";
+        private readonly string TranslationResolveApiUrl = $"{BaseApiUrl}/api/translations/resolve";
 
 
         public AppDbContext(PremiumService premiumService)
@@ -194,7 +195,68 @@ namespace VinhKhanhTourGuide.Data
         public async Task SaveCacheAsync(TranslationCache cache)
         {
             await Init();
-            await _database!.InsertAsync(cache);
+            var existing = await _database!.Table<TranslationCache>()
+                .Where(c => c.PoiId == cache.PoiId && c.LanguageCode == cache.LanguageCode)
+                .FirstOrDefaultAsync();
+
+            if (existing != null)
+            {
+                existing.TranslatedText = cache.TranslatedText;
+                existing.CreatedAt = cache.CreatedAt;
+                await _database.UpdateAsync(existing);
+                return;
+            }
+
+            await _database.InsertAsync(cache);
+        }
+
+        public async Task<(string text, bool success, bool cacheHit)> ResolveSharedTranslationAsync(
+            string poiId,
+            string sourceText,
+            string targetLanguageCode)
+        {
+            try
+            {
+                var request = new TranslationResolveRequest
+                {
+                    PoiId = poiId,
+                    SourceText = sourceText,
+                    TargetLanguageCode = targetLanguageCode
+                };
+
+                string json = JsonSerializer.Serialize(request);
+                using var content = new StringContent(json, Encoding.UTF8, "application/json");
+                using var client = CreateHttpClient();
+                using HttpResponseMessage response = await client.PostAsync(TranslationResolveApiUrl, content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorDetail = await response.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"[TranslationResolve] API fail {(int)response.StatusCode}: {errorDetail}");
+                    return (sourceText, false, false);
+                }
+
+                string responseJson = await response.Content.ReadAsStringAsync();
+                var payload = JsonSerializer.Deserialize<TranslationResolveResponse>(
+                    responseJson,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                if (payload == null || !payload.Success || string.IsNullOrWhiteSpace(payload.Text))
+                {
+                    System.Diagnostics.Debug.WriteLine("[TranslationResolve] API tra ve rong hoac fail.");
+                    return (sourceText, false, false);
+                }
+
+                return (payload.Text.Trim(), true, payload.CacheHit);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[TranslationResolve] Exception: {ex.Message}");
+                return (sourceText, false, false);
+            }
         }
 
         public async Task SendAnalyticsAsync(ListeningLog log)
@@ -280,6 +342,21 @@ namespace VinhKhanhTourGuide.Data
         {
             await ResetDatabaseAsync();
             await ReloadAsync();
+        }
+
+        private sealed class TranslationResolveRequest
+        {
+            public string PoiId { get; set; }
+            public string SourceText { get; set; }
+            public string TargetLanguageCode { get; set; }
+        }
+
+        private sealed class TranslationResolveResponse
+        {
+            public string Text { get; set; }
+            public string LanguageCode { get; set; }
+            public bool CacheHit { get; set; }
+            public bool Success { get; set; }
         }
     }
 }
