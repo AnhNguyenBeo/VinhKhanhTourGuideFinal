@@ -3,7 +3,7 @@
     ViewData["Title"] = "Báo cáo phân tích dữ liệu";
 }
 
-<h2 class="mb-4 text-primary">📊 Phân Tích Dữ Liệu Nghe Thuyết Minh</h2>
+<h2 class="mb-4 text-primary">📊 Phân tích dữ liệu nghe thuyết minh</h2>
 
 @if (TempData["AnalyticsMessage"] is string analyticsMessage)
 {
@@ -16,9 +16,9 @@
     <div class="col-lg-4">
         <div class="card shadow h-100 border-start border-success border-4">
             <div class="card-body">
-                <div class="text-muted small mb-2">Active App Right Now</div>
+                <div class="text-muted small mb-2">Ứng dụng đang hoạt động</div>
                 <div id="activeUsersNow" class="display-5 fw-bold text-success">@Model.ActiveUsersNow</div>
-                <div class="text-muted small">Heartbeat seen in the last @Model.ActiveWindowSeconds seconds</div>
+                <div class="text-muted small">Đã nhận heartbeat trong @Model.ActiveWindowSeconds giây gần nhất</div>
             </div>
         </div>
     </div>
@@ -27,17 +27,17 @@
         <div class="card shadow h-100">
             <div class="card-header bg-white py-3">
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <h6 class="m-0 font-weight-bold text-success">Real-Time Active Visitors</h6>
+                    <h6 class="m-0 font-weight-bold text-success">Khách đang hoạt động theo thời gian thực</h6>
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <div class="small text-muted">
-                            Auto refresh every 5s
+                            Tự làm mới mỗi 5 giây
                             <span class="mx-1">|</span>
-                            Last refresh:
+                            Cập nhật lúc:
                             <span id="snapshotGeneratedAt">@Model.SnapshotGeneratedAt.ToString("HH:mm:ss")</span>
                         </div>
                         <form method="post" action="@Url.Action("ClearActiveVisitors", "Analytics")" class="m-0">
                             <button type="submit" class="btn btn-sm btn-outline-danger">
-                                Clear Active Sessions
+                                Xóa phiên đang hoạt động
                             </button>
                         </form>
                     </div>
@@ -46,7 +46,7 @@
             <div id="activeVisitorsSection" class="card-body">
                 @if (Model.ActiveVisitors.Count == 0)
                 {
-                    <div class="text-muted">No visitor heartbeat has arrived in the last @Model.ActiveWindowSeconds seconds.</div>
+                    <div class="text-muted">Chưa có heartbeat nào từ khách trong @Model.ActiveWindowSeconds giây gần nhất.</div>
                 }
                 else
                 {
@@ -54,12 +54,12 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th>Session</th>
-                                    <th>Status</th>
-                                    <th>Nearest POI</th>
-                                    <th class="text-end">Distance</th>
-                                    <th>Listening POI</th>
-                                    <th>Last Seen</th>
+                                    <th>Phiên</th>
+                                    <th>Trạng thái</th>
+                                    <th>Quán gần nhất</th>
+                                    <th class="text-end">Khoảng cách</th>
+                                    <th>Đang nghe quán</th>
+                                    <th>Lần ghi nhận cuối</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -70,15 +70,15 @@
                                         <td>
                                             @if (visitor.Status == "listening")
                                             {
-                                                <span class="badge bg-danger">listening</span>
+                                                <span class="badge bg-danger">Đang nghe</span>
                                             }
                                             else if (visitor.Status == "near_poi")
                                             {
-                                                <span class="badge bg-warning text-dark">near_poi</span>
+                                                <span class="badge bg-warning text-dark">Gần quán</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-success">app_open</span>
+                                                <span class="badge bg-success">Đang mở app</span>
                                             }
                                         </td>
                                         <td>@(visitor.NearestPoiName ?? "-")</td>
@@ -104,7 +104,7 @@
     <div class="col-md-8">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Top Quán Ăn Được Nghe Nhiều Nhất</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Top quán ăn được nghe nhiều nhất</h6>
             </div>
             <div class="card-body">
                 <canvas id="topPoisChart" height="120"></canvas>
@@ -115,15 +115,15 @@
     <div class="col-md-4">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Chi Tiết Thời Gian</h6>
+                <h6 class="m-0 font-weight-bold text-primary">Chi tiết thời gian</h6>
             </div>
             <div class="card-body">
                 <table class="table table-bordered">
                     <thead>
                         <tr>
-                            <th>Tên Quán</th>
-                            <th>Lượt Nghe</th>
-                            <th>TB (Giây)</th>
+                            <th>Tên quán</th>
+                            <th>Lượt nghe</th>
+                            <th>TB (giây)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -146,7 +146,7 @@
     <div class="col-12">
         <div class="card shadow mb-4">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-danger">🔥 Bản Đồ Nhiệt: Vị Trí Khách Nghe Thuyết Minh</h6>
+                <h6 class="m-0 font-weight-bold text-danger">🔥 Bản đồ nhiệt: vị trí khách nghe thuyết minh</h6>
             </div>
             <div class="card-body p-0">
                 <div id="heatmapContainer" style="height: 450px; width: 100%; border-radius: 0 0 5px 5px; z-index: 1;"></div>
@@ -199,7 +199,7 @@
             radius: 25,
             blur: 15,
             maxZoom: 17,
-            gradient: {0.4: 'blue', 0.65: 'lime', 1: 'red'}
+            gradient: { 0.4: 'blue', 0.65: 'lime', 1: 'red' }
         }).addTo(map);
     }
 
@@ -244,14 +244,14 @@
 
     function getStatusBadge(status) {
         if (status === 'listening') {
-            return '<span class="badge bg-danger">listening</span>';
+            return '<span class="badge bg-danger">Đang nghe</span>';
         }
 
         if (status === 'near_poi') {
-            return '<span class="badge bg-warning text-dark">near_poi</span>';
+            return '<span class="badge bg-warning text-dark">Gần quán</span>';
         }
 
-        return '<span class="badge bg-success">app_open</span>';
+        return '<span class="badge bg-success">Đang mở app</span>';
     }
 
     function renderActiveVisitors(activeVisitors) {
@@ -261,7 +261,7 @@
         }
 
         if (!Array.isArray(activeVisitors) || activeVisitors.length === 0) {
-            section.innerHTML = `<div class="text-muted">No visitor heartbeat has arrived in the last ${activeWindowSeconds} seconds.</div>`;
+            section.innerHTML = `<div class="text-muted">Chưa có heartbeat nào từ khách trong ${activeWindowSeconds} giây gần nhất.</div>`;
             return;
         }
 
@@ -281,12 +281,12 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>Session</th>
-                            <th>Status</th>
-                            <th>Nearest POI</th>
-                            <th class="text-end">Distance</th>
-                            <th>Listening POI</th>
-                            <th>Last Seen</th>
+                            <th>Phiên</th>
+                            <th>Trạng thái</th>
+                            <th>Quán gần nhất</th>
+                            <th class="text-end">Khoảng cách</th>
+                            <th>Đang nghe quán</th>
+                            <th>Lần ghi nhận cuối</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>

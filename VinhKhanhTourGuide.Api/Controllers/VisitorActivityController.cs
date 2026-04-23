@@ -10,6 +10,7 @@ namespace VinhKhanhTourGuide.Api.Controllers
     [ApiController]
     public class VisitorActivityController : ControllerBase
     {
+        private static readonly TimeZoneInfo VietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
         private readonly TourDbContext _context;
 
         public VisitorActivityController(TourDbContext context)
@@ -55,7 +56,7 @@ namespace VinhKhanhTourGuide.Api.Controllers
             activity.CurrentListeningPoiId = request.CurrentListeningPoiId;
             activity.LastEvent = request.LastEvent;
             activity.Platform = request.Platform;
-            activity.LastSeenAt = DateTime.Now;
+            activity.LastSeenAt = GetVietnamNow();
 
             await _context.SaveChangesAsync();
 
@@ -85,6 +86,11 @@ END
 """;
 
             await _context.Database.ExecuteSqlRawAsync(sql);
+        }
+
+        private static DateTime GetVietnamNow()
+        {
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, VietnamTimeZone);
         }
     }
 }

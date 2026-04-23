@@ -10,6 +10,7 @@ namespace VinhKhanhTourGuide.WebAdmin.Controllers
     {
         private const int ActiveWindowSeconds = 20;
         private const int FutureHeartbeatToleranceSeconds = 5;
+        private static readonly TimeZoneInfo VietnamTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
         private readonly TourDbContext _context;
 
         public AnalyticsController(TourDbContext context)
@@ -21,7 +22,7 @@ namespace VinhKhanhTourGuide.WebAdmin.Controllers
         {
             var viewModel = new AnalyticsDashboardViewModel();
 
-            await PopulateActiveVisitorsAsync(viewModel, DateTime.Now.AddSeconds(-ActiveWindowSeconds));
+            await PopulateActiveVisitorsAsync(viewModel, GetVietnamNow().AddSeconds(-ActiveWindowSeconds));
 
             var rawStats = await _context.ListeningLogs
                 .Join(
@@ -59,7 +60,7 @@ namespace VinhKhanhTourGuide.WebAdmin.Controllers
         public async Task<IActionResult> Snapshot()
         {
             var viewModel = new AnalyticsDashboardViewModel();
-            await PopulateActiveVisitorsAsync(viewModel, DateTime.Now.AddSeconds(-ActiveWindowSeconds));
+            await PopulateActiveVisitorsAsync(viewModel, GetVietnamNow().AddSeconds(-ActiveWindowSeconds));
 
             return Json(new
             {
@@ -76,11 +77,11 @@ namespace VinhKhanhTourGuide.WebAdmin.Controllers
             try
             {
                 await _context.Database.ExecuteSqlRawAsync("DELETE FROM [VisitorActivity]");
-                TempData["AnalyticsMessage"] = "Da xoa toan bo session active cu.";
+                TempData["AnalyticsMessage"] = "Đã xóa toàn bộ phiên đang hoạt động cũ.";
             }
             catch (SqlException ex) when (ex.Message.Contains("VisitorActivity", StringComparison.OrdinalIgnoreCase))
             {
-                TempData["AnalyticsMessage"] = "Bang VisitorActivity chua ton tai, khong co session nao de xoa.";
+                TempData["AnalyticsMessage"] = "Chưa có bảng theo dõi hoạt động, không có phiên nào để xóa.";
             }
 
             return RedirectToAction(nameof(Index));
@@ -89,7 +90,7 @@ namespace VinhKhanhTourGuide.WebAdmin.Controllers
         private async Task PopulateActiveVisitorsAsync(AnalyticsDashboardViewModel viewModel, DateTime activeCutoff)
         {
             viewModel.ActiveWindowSeconds = ActiveWindowSeconds;
-            viewModel.SnapshotGeneratedAt = DateTime.Now;
+            viewModel.SnapshotGeneratedAt = GetVietnamNow();
             var activeUpperBound = viewModel.SnapshotGeneratedAt.AddSeconds(FutureHeartbeatToleranceSeconds);
 
             try
@@ -150,6 +151,11 @@ namespace VinhKhanhTourGuide.WebAdmin.Controllers
             }
 
             return $"{sessionId[..4]}...{sessionId[^4..]}";
+        }
+
+        private static DateTime GetVietnamNow()
+        {
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, VietnamTimeZone);
         }
     }
 }
