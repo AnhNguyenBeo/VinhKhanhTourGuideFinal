@@ -1,0 +1,1295 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PRD VinhKhanhTourGuide Fullstack</title>
+    <style>
+        :root {
+            --bg: #f3efe7;
+            --bg-accent: #e6f6f8;
+            --surface: rgba(255,255,255,.92);
+            --surface-strong: #ffffff;
+            --ink: #132028;
+            --muted: #52606d;
+            --line: #d7e3e7;
+            --brand: #0f766e;
+            --brand-2: #0ea5a4;
+            --brand-3: #dff7f4;
+            --warm: #f59e0b;
+            --warm-soft: #fff7e7;
+            --shadow: 0 18px 45px rgba(19, 32, 40, .10);
+            --radius: 22px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+            line-height: 1.72;
+            background: radial-gradient(circle at top left, rgba(14,165,164,.16), transparent 24%), radial-gradient(circle at top right, rgba(245,158,11,.12), transparent 26%), linear-gradient(180deg, #f6f1e7 0%, #eef6f7 52%, #f6f3ec 100%);
+        }
+
+        a {
+            color: inherit;
+        }
+
+        .page {
+            max-width: 1480px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .hero {
+            position: relative;
+            overflow: hidden;
+            border-radius: 30px;
+            padding: 34px;
+            color: #f6fffe;
+            background: radial-gradient(circle at 78% 20%, rgba(255,255,255,.16), transparent 18%), radial-gradient(circle at 12% 8%, rgba(245,158,11,.18), transparent 20%), linear-gradient(135deg, #062a2f 0%, #0d4d52 42%, #0f766e 70%, #14b8a6 100%);
+            box-shadow: 0 30px 60px rgba(6,42,47,.30);
+            border: 1px solid rgba(255,255,255,.10);
+        }
+
+            .hero::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(180deg, rgba(255,255,255,.06), transparent 40%);
+                pointer-events: none;
+            }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.10);
+            border: 1px solid rgba(255,255,255,.18);
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .hero h1 {
+            margin: 14px 0 10px;
+            font-size: clamp(2rem, 4vw, 3.4rem);
+            line-height: 1.08;
+            letter-spacing: -.04em;
+            max-width: 980px;
+        }
+
+        .hero p {
+            margin: 0;
+            max-width: 980px;
+            font-size: 1.02rem;
+            color: rgba(240,255,252,.88);
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .pill {
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.10);
+            border: 1px solid rgba(255,255,255,.18);
+            font-size: .92rem;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 14px;
+            margin-top: 22px;
+        }
+
+        .metric {
+            background: rgba(255,255,255,.10);
+            border: 1px solid rgba(255,255,255,.16);
+            border-radius: 18px;
+            padding: 16px 18px;
+            backdrop-filter: blur(10px);
+        }
+
+            .metric strong {
+                display: block;
+                font-size: 1.65rem;
+                line-height: 1;
+                margin-bottom: 8px;
+                color: #fff7ed;
+            }
+
+            .metric span {
+                color: rgba(244,255,252,.86);
+                font-size: .95rem;
+            }
+
+        .quick-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+            .quick-links a {
+                text-decoration: none;
+                padding: 10px 14px;
+                border-radius: 14px;
+                background: rgba(255,255,255,.12);
+                border: 1px solid rgba(255,255,255,.18);
+                color: #ffffff;
+                font-weight: 600;
+            }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+            gap: 22px;
+            margin-top: 22px;
+            align-items: start;
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 18px;
+            display: grid;
+            gap: 18px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+            .card h2, .card h3 {
+                margin: 0 0 12px;
+                font-size: 1rem;
+                letter-spacing: -.02em;
+            }
+
+        .toc {
+            max-height: calc(100vh - 40px);
+            overflow: auto;
+            padding-right: 6px;
+        }
+
+        .toc-links {
+            display: grid;
+            gap: 8px;
+        }
+
+            .toc-links a {
+                text-decoration: none;
+                color: var(--muted);
+                border: 1px solid transparent;
+                border-radius: 12px;
+                padding: 10px 12px;
+                background: linear-gradient(180deg, rgba(255,255,255,.9), rgba(246,250,250,.88));
+                transition: .2s ease;
+                font-size: .93rem;
+            }
+
+                .toc-links a:hover,
+                .toc-links a.active {
+                    color: #073b37;
+                    border-color: rgba(14,165,164,.18);
+                    background: linear-gradient(135deg, #dff7f4, #fff7e7);
+                    transform: translateX(2px);
+                }
+
+        .asset-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+            .asset-links a {
+                text-decoration: none;
+                color: #0f4b4f;
+                background: var(--brand-3);
+                border: 1px solid rgba(15,118,110,.14);
+                border-radius: 999px;
+                padding: 8px 12px;
+                font-size: .88rem;
+                font-weight: 600;
+            }
+
+        .content {
+            display: grid;
+            gap: 20px;
+        }
+
+        .intro-note {
+            background: linear-gradient(135deg, #fff7e7, #ffffff);
+            border: 1px solid #f6d9a7;
+            border-left: 5px solid var(--warm);
+            border-radius: 18px;
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+        }
+
+            .intro-note p {
+                margin: 0;
+                color: #5f4b1e;
+            }
+
+        .doc-section {
+            background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(252,254,254,.96));
+            border: 1px solid var(--line);
+            border-left: 6px solid var(--brand);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--shadow);
+            scroll-margin-top: 20px;
+        }
+
+            .doc-section h2 {
+                margin: 0 0 16px;
+                font-size: clamp(1.45rem, 2vw, 1.9rem);
+                letter-spacing: -.03em;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #e7eef0;
+            }
+
+            .doc-section h3 {
+                margin: 24px 0 10px;
+                font-size: 1.08rem;
+                color: #11373d;
+            }
+
+            .doc-section h4 {
+                margin: 16px 0 8px;
+                font-size: .98rem;
+                color: #23424a;
+            }
+
+            .doc-section p {
+                margin: 0 0 12px;
+                color: #36454f;
+            }
+
+            .doc-section ul {
+                margin: 0 0 12px 18px;
+                padding: 0;
+            }
+
+            .doc-section li {
+                margin: 6px 0;
+                color: #36454f;
+            }
+
+            .doc-section code {
+                font-family: Consolas, "Courier New", monospace;
+                font-size: .92em;
+                background: #f1f7f8;
+                color: #084b4f;
+                padding: 2px 7px;
+                border-radius: 7px;
+                border: 1px solid #d6e8eb;
+            }
+
+        .diagram-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+            margin-top: 18px;
+        }
+
+        .diagram-card {
+            margin: 0;
+            background: linear-gradient(180deg, #ffffff, #f9fbfb);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 14px;
+            box-shadow: 0 14px 28px rgba(19,32,40,.08);
+        }
+
+            .diagram-card img {
+                width: 100%;
+                height: auto;
+                display: block;
+                border-radius: 14px;
+                border: 1px solid #d8e5e8;
+                background: #ffffff;
+                cursor: zoom-in;
+            }
+
+            .diagram-card figcaption {
+                margin-top: 12px;
+                font-weight: 700;
+                color: #11373d;
+            }
+
+            .diagram-card p {
+                margin: 6px 0 0;
+                font-size: .94rem;
+                color: var(--muted);
+            }
+
+        .zoom-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(7, 20, 25, .82);
+            z-index: 999;
+        }
+
+            .zoom-overlay.open {
+                display: flex;
+            }
+
+            .zoom-overlay img {
+                max-width: min(96vw, 1600px);
+                max-height: 92vh;
+                border-radius: 16px;
+                box-shadow: 0 22px 60px rgba(0,0,0,.35);
+                background: white;
+            }
+
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: .92rem;
+            padding: 22px 8px 10px;
+        }
+
+        @media (max-width: 1100px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .toc {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page {
+                padding: 14px;
+            }
+
+            .hero {
+                padding: 24px;
+                border-radius: 24px;
+            }
+
+            .doc-section {
+                padding: 20px;
+                border-radius: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <header class="hero">
+            <div class="eyebrow">PRD Fullstack • Mobile + API + Web Admin</div>
+            <h1>PRD Chi Tiết Cho Đồ Án VinhKhanhTourGuide</h1>
+            <p>
+                Giao diện web này gom toàn bộ nội dung PRD chi tiết của đồ án và phụ lục hình ảnh cho các sơ đồ
+                activity/sequence đã dựng sẵn, để xem trực tiếp, demo hoặc in PDF mà không cần mở nhiều file rời.
+            </p>
+            <div class="hero-meta">
+                <span class="pill">Nguồn chính: <code>PRD_ChiTiet_DoAn_VinhKhanhTourGuide.md</code></span>
+                <span class="pill">Bản HTML: <code>PRD_VinhKhanhTourGuide.html</code></span>
+                <span class="pill">Cập nhật: 23/04/2026 23:51</span>
+            </div>
+            <div class="metrics">
+                <div class="metric"><strong>3</strong><span>phân hệ chính: mobile, API, web admin</span></div>
+                <div class="metric"><strong>23</strong><span>chức năng nghiệp vụ đã đặc tả</span></div>
+                <div class="metric"><strong>26</strong><span>khối nội dung PRD cấp <code>##</code></span></div>
+                <div class="metric"><strong>22</strong><span>ảnh sơ đồ usecase/activity/sequence gắn trực tiếp</span></div>
+            </div>
+            <div class="quick-links">
+                <a href="#5-pham-vi-do-an">Phạm vi</a>
+                <a href="#12-danh-sach-chuc-nang-chi-tiet">Chức năng</a>
+                <a href="#16-yeu-cau-phi-chuc-nang">Phi chức năng</a>
+                <a href="#18-tieu-chi-nghiem-thu">Nghiệm thu</a>
+                <a href="#phu-luc-so-do">Sơ đồ</a>
+            </div>
+        </header>
+
+        <div class="layout">
+            <aside class="sidebar">
+                <div class="card toc">
+                    <h2>Mục Lục Nhanh</h2>
+                    <div class="toc-links" id="toc-links"></div>
+                </div>
+                <div class="card">
+                    <h3>Tệp Liên Quan</h3>
+                    <div class="asset-links">
+                        <a href="./PRD_ChiTiet_DoAn_VinhKhanhTourGuide.md">PRD Markdown</a>
+                        <a href="./ClassDiagram_ChiTiet_ToanBoDuAn.md">Class Diagram chi tiết</a>
+                        <a href="./ActivityDiagram.drawio.png">Activity PNG</a>
+                        <a href="./SequenceDiagram.drawio.png">Sequence PNG</a>
+                        <a href="./ActivityDiagram.drawio">Activity Drawio</a>
+                        <a href="./SequenceDiagram.drawio">Sequence Drawio</a>
+                        <a href="./UseCaseDiagram.drawio.png">Use Case PNG</a>
+                        <a href="./ClassDiagram.drawio.png">Class Diagram PNG</a>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="content">
+                <div class="intro-note">
+                    <p>
+                        Bản HTML này ưu tiên tính đọc được khi demo: mọi nội dung PRD nằm trong một trang duy nhất,
+                        phần sơ đồ dùng ảnh có sẵn để chạy offline ổn định và có thể bấm phóng to khi xem trên máy chiếu.
+                    </p>
+                </div>
+
+                <section class="doc-section" id="1-thong-tin-tai-lieu">
+                    <h2>1. Thông tin tài liệu</h2>
+                    <ul>
+                        <li>Tên sản phẩm: <code>VinhKhanhTourGuide</code></li>
+                        <li>Loại sản phẩm: Hệ thống fullstack hỗ trợ tham quan ẩm thực theo vị trí thực tế</li>
+                        <li>Kiến trúc: <code>Mobile App (MAUI) + Web API + Web Admin MVC + SQL Server + SQLite local</code></li>
+                        <li>Mục đích tài liệu: Đặc tả yêu cầu sản phẩm ở mức đủ chi tiết để triển khai, kiểm thử, báo cáo đồ án và demo nghiệm thu</li>
+                        <li>Ghi chú: Tài liệu này không lặp lại các sơ đồ sequence, activity hay class diagram đã được xây dựng riêng</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="2-boi-canh-va-bai-toan">
+                    <h2>2. Bối cảnh và bài toán</h2>
+                    <p>Khu ẩm thực Vĩnh Khánh là một địa điểm có mật độ quán ăn cao, trải nghiệm thực tế phụ thuộc nhiều vào việc người dùng biết quán nào nổi bật, vị trí ở đâu, món nào nên thử và cách di chuyển đến điểm tiếp theo. Ở trạng thái truyền thống, khách phải tự tìm thông tin rời rạc từ biển hiệu, mạng xã hội hoặc người quen, dẫn đến trải nghiệm thiếu mạch lạc và khó chuẩn hóa.</p>
+                    <p>Đồ án hướng tới việc xây dựng một hệ thống thuyết minh ẩm thực theo vị trí, trong đó:</p>
+                    <ul>
+                        <li>Quản trị viên quản lý tập trung dữ liệu quán ăn và nội dung thuyết minh.</li>
+                        <li>Ứng dụng di động hiển thị bản đồ, vị trí hiện tại, danh sách quán gần người dùng và hỗ trợ chỉ đường.</li>
+                        <li>Hệ thống tự động phát thuyết minh khi người dùng đi vào vùng geofence của quán hoặc cho phép phát thủ công.</li>
+                        <li>Nội dung có thể được dịch sang ngôn ngữ khác và phát lại bằng text-to-speech.</li>
+                        <li>Hệ thống ghi nhận analytics và trạng thái hoạt động hiện tại để hỗ trợ giám sát.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="3-tam-nhin-san-pham">
+                    <h2>3. Tầm nhìn sản phẩm</h2>
+                    <p>Xây dựng một trợ lý tham quan ẩm thực số cho khu Vĩnh Khánh, giúp người dùng vừa di chuyển vừa khám phá quán ăn thông qua bản đồ, chỉ đường, thuyết minh tự động, bản dịch đa ngôn ngữ và dashboard theo dõi dữ liệu ở phía quản trị.</p>
+                </section>
+                <section class="doc-section" id="4-muc-tieu-san-pham">
+                    <h2>4. Mục tiêu sản phẩm</h2>
+                    <h3>4.1. Mục tiêu nghiệp vụ</h3>
+                    <ul>
+                        <li>Số hóa danh sách điểm đến ẩm thực tại khu Vĩnh Khánh.</li>
+                        <li>Cung cấp trải nghiệm hướng dẫn tham quan trực quan ngay trên điện thoại.</li>
+                        <li>Tăng tính hấp dẫn của trải nghiệm bằng thuyết minh tự động theo vị trí.</li>
+                        <li>Hỗ trợ người dùng quốc tế qua cơ chế dịch nội dung và phát âm thanh đa ngôn ngữ.</li>
+                        <li>Hỗ trợ quản trị viên theo dõi dữ liệu sử dụng và hoạt động thực tế của người dùng.</li>
+                    </ul>
+                    <h3>4.2. Mục tiêu kỹ thuật</h3>
+                    <ul>
+                        <li>Xây dựng hệ thống fullstack tách rõ 3 phần: mobile, API, admin.</li>
+                        <li>Đảm bảo ứng dụng vẫn hoạt động được trong điều kiện mạng yếu hoặc mất mạng tạm thời.</li>
+                        <li>Tối ưu thời gian phản hồi nhờ cache local trên mobile và cache dùng chung trên server.</li>
+                        <li>Có khả năng mở rộng danh sách quán ăn, ngôn ngữ và dashboard trong các giai đoạn tiếp theo.</li>
+                    </ul>
+                    <h3>4.3. Chỉ số thành công mục tiêu</h3>
+                    <ul>
+                        <li>Quản trị viên thêm hoặc sửa một POI trên Web Admin và dữ liệu đó có thể được mobile sử dụng ở lần tải dữ liệu kế tiếp.</li>
+                        <li>Người dùng mở app, xem được bản đồ, vị trí hiện tại và danh sách quán trong một phiên demo thực địa ổn định.</li>
+                        <li>Khi người dùng đi vào vùng geofence hợp lệ, hệ thống có thể tự động phát thuyết minh cho đúng quán mục tiêu.</li>
+                        <li>Khi thiết bị dùng ngôn ngữ khác tiếng Việt, hệ thống trả được nội dung dịch hợp lệ hoặc fallback an toàn mà không làm crash app.</li>
+                        <li>Dashboard admin phản ánh được log nghe, active visitors và heatmap từ dữ liệu mobile gửi lên.</li>
+                        <li>Toàn bộ luồng demo từ quản trị dữ liệu -&gt; mobile sử dụng -&gt; analytics -&gt; dashboard được thực hiện end-to-end.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="5-pham-vi-o-an">
+                    <h2>5. Phạm vi đồ án</h2>
+                    <h3>5.1. Trong phạm vi</h3>
+                    <ul>
+                        <li>Quản lý điểm đến ẩm thực (POI) trên Web Admin.</li>
+                        <li>Upload, thay thế và xóa ảnh minh họa của POI.</li>
+                        <li>Cung cấp API danh sách POI cho mobile.</li>
+                        <li>Hiển thị bản đồ, vị trí hiện tại và các quán trên mobile.</li>
+                        <li>Hiển thị danh sách quán ăn theo khoảng cách gần người dùng.</li>
+                        <li>Chỉ đường từ vị trí hiện tại đến quán qua ứng dụng bản đồ trên thiết bị.</li>
+                        <li>Phát thuyết minh tự động khi người dùng vào vùng geofence.</li>
+                        <li>Phát thuyết minh thủ công tại màn hình chi tiết quán.</li>
+                        <li>Dịch nội dung tiếng Việt sang ngôn ngữ mục tiêu thông qua API dịch.</li>
+                        <li>Cache bản dịch tại mobile và tại server.</li>
+                        <li>Phát audio bằng text-to-speech của hệ điều hành.</li>
+                        <li>Gửi analytics sau phiên nghe.</li>
+                        <li>Gửi heartbeat monitoring để theo dõi active visitor.</li>
+                        <li>Hiển thị dashboard analytics, active users và heatmap ở Web Admin.</li>
+                        <li>Mở khóa gói đầy đủ để tải toàn bộ dữ liệu quán ăn.</li>
+                    </ul>
+                    <h3>5.2. Ngoài phạm vi hiện tại</h3>
+                    <ul>
+                        <li>Thanh toán thật với cổng thanh toán thương mại.</li>
+                        <li>Đăng nhập người dùng cuối.</li>
+                        <li>Quản lý nhiều khu du lịch độc lập trong cùng một hệ thống.</li>
+                        <li>Đồng bộ dữ liệu theo tài khoản cloud cho mỗi người dùng.</li>
+                        <li>Đề xuất lộ trình tham quan tối ưu nhiều điểm đến.</li>
+                        <li>Bình luận, đánh giá quán ăn từ phía người dùng.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="6-oi-tuong-su-dung">
+                    <h2>6. Đối tượng sử dụng</h2>
+                    <h3>6.1. Người dùng cuối</h3>
+                    <ul>
+                        <li>Khách du lịch nội địa muốn xem quán gần mình và nghe giới thiệu tự động.</li>
+                        <li>Khách quốc tế cần nội dung được dịch sang ngôn ngữ của thiết bị.</li>
+                        <li>Người dùng cần chỉ đường nhanh đến từng quán mà không phải tự tìm kiếm.</li>
+                    </ul>
+                    <h3>6.2. Quản trị viên</h3>
+                    <ul>
+                        <li>Người nhập và cập nhật dữ liệu quán ăn.</li>
+                        <li>Người theo dõi tình hình sử dụng ứng dụng, số lượt nghe, active users và heatmap.</li>
+                    </ul>
+                    <h3>6.3. Hội đồng / giảng viên / người chấm đồ án</h3>
+                    <ul>
+                        <li>Cần đánh giá tính đầy đủ của kiến trúc, logic nghiệp vụ, khả năng demo và tính ứng dụng thực tế.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="7-gia-tri-cot-loi-cua-he-thong">
+                    <h2>7. Giá trị cốt lõi của hệ thống</h2>
+                    <ul>
+                        <li>Trải nghiệm khám phá theo vị trí thực tế thay vì chỉ xem danh sách tĩnh.</li>
+                        <li>Nội dung thuyết minh được tự động kích hoạt, giảm thao tác cho người dùng.</li>
+                        <li>Khả năng hỗ trợ đa ngôn ngữ mà không phải chuẩn bị sẵn toàn bộ nội dung cho từng ngôn ngữ.</li>
+                        <li>Offline-first giúp ứng dụng vẫn có giá trị trong điều kiện mạng không ổn định.</li>
+                        <li>Dashboard quản trị giúp sản phẩm không chỉ là app demo mà còn có vòng quản trị dữ liệu và theo dõi vận hành.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="8-kien-truc-san-pham-o-muc-nghiep-vu">
+                    <h2>8. Kiến trúc sản phẩm ở mức nghiệp vụ</h2>
+                    <h3>8.1. Mobile App</h3>
+                    <p>Chịu trách nhiệm tương tác trực tiếp với người dùng cuối:</p>
+                    <ul>
+                        <li>Xin quyền vị trí.</li>
+                        <li>Tải và cache dữ liệu quán ăn.</li>
+                        <li>Hiển thị bản đồ và danh sách quán.</li>
+                        <li>Theo dõi vị trí hiện tại.</li>
+                        <li>Phát hiện geofence và tự động phát thuyết minh.</li>
+                        <li>Mở trang chi tiết quán để phát audio thủ công hoặc mở chỉ đường.</li>
+                        <li>Gửi analytics và monitoring heartbeat về server.</li>
+                    </ul>
+                    <h3>8.2. Web API</h3>
+                    <p>Chịu trách nhiệm làm lớp trung gian nghiệp vụ và dữ liệu:</p>
+                    <ul>
+                        <li>Trả danh sách POI cho mobile.</li>
+                        <li>Ghi nhận analytics.</li>
+                        <li>Nhận heartbeat monitoring.</li>
+                        <li>Điều phối dịch nội dung và quản lý translation cache.</li>
+                        <li>Cung cấp endpoint health check để giám sát trạng thái dịch vụ.</li>
+                    </ul>
+                    <h3>8.3. Web Admin</h3>
+                    <p>Chịu trách nhiệm quản trị nội dung và theo dõi vận hành:</p>
+                    <ul>
+                        <li>CRUD điểm đến.</li>
+                        <li>Quản lý ảnh quán ăn.</li>
+                        <li>Theo dõi tổng lượt nghe, thời lượng trung bình, active visitors.</li>
+                        <li>Hiển thị heatmap vị trí nghe.</li>
+                        <li>Xóa active sessions khi cần làm sạch dữ liệu hiển thị.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="9-gia-inh-va-rang-buoc">
+                    <h2>9. Giả định và ràng buộc</h2>
+                    <h3>9.1. Giả định</h3>
+                    <ul>
+                        <li>Người dùng mang điện thoại Android có bật GPS và Internet trong phần lớn thời gian trải nghiệm.</li>
+                        <li>Nội dung gốc luôn được viết bằng tiếng Việt.</li>
+                        <li>Dữ liệu POI đủ nhỏ để có thể cache hoàn toàn trên thiết bị.</li>
+                        <li>Số lượng quán ăn trong đồ án ở mức vừa phải, phù hợp mô hình một tuyến phố ẩm thực.</li>
+                    </ul>
+                    <h3>9.2. Ràng buộc</h3>
+                    <ul>
+                        <li>Text-to-speech phụ thuộc engine có sẵn trên thiết bị.</li>
+                        <li>Độ chính xác GPS có thể bị ảnh hưởng bởi môi trường thực địa.</li>
+                        <li>Chức năng mua gói đầy đủ hiện là mô phỏng mở khóa nội bộ, chưa phải thanh toán thật.</li>
+                        <li>Hạ tầng triển khai hiện tại phù hợp đồ án và demo, chưa tối ưu cho production scale.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="10-personas-va-nhu-cau-chinh">
+                    <h2>10. Personas và nhu cầu chính</h2>
+                    <h3>10.1. Persona A: Khách tham quan mới</h3>
+                    <ul>
+                        <li>Muốn biết quanh mình có quán nào đáng chú ý.</li>
+                        <li>Muốn mở bản đồ và nhìn thấy quán ngay lập tức.</li>
+                        <li>Muốn nghe giới thiệu mà không phải bấm quá nhiều.</li>
+                    </ul>
+                    <h3>10.2. Persona B: Khách quốc tế</h3>
+                    <ul>
+                        <li>Không đọc tốt tiếng Việt.</li>
+                        <li>Cần nội dung được dịch sang ngôn ngữ quen thuộc.</li>
+                        <li>Cần audio để nghe thay vì đọc dài trên màn hình.</li>
+                    </ul>
+                    <h3>10.3. Persona C: Quản trị viên nội dung</h3>
+                    <ul>
+                        <li>Muốn chỉnh sửa nhanh dữ liệu quán và ảnh.</li>
+                        <li>Muốn biết quán nào được nghe nhiều.</li>
+                        <li>Muốn biết hiện tại có người dùng nào đang hoạt động trong khu vực hay không.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="11-user-stories-chinh">
+                    <h2>11. User stories chính</h2>
+                    <h3>11.1. Dành cho khách du lịch</h3>
+                    <ul>
+                        <li>Là người dùng, tôi muốn xem vị trí hiện tại và các quán trên bản đồ để định hướng nhanh trong khu ẩm thực.</li>
+                        <li>Là người dùng, tôi muốn xem danh sách quán gần mình để chọn quán thuận tiện nhất.</li>
+                        <li>Là người dùng, tôi muốn hệ thống tự phát thuyết minh khi tôi đến gần quán để có trải nghiệm rảnh tay.</li>
+                        <li>Là người dùng, tôi muốn chủ động bấm phát thuyết minh trong trang chi tiết để nghe lại khi cần.</li>
+                        <li>Là người dùng, tôi muốn mở chỉ đường đến quán bằng ứng dụng bản đồ trên điện thoại.</li>
+                        <li>Là người dùng quốc tế, tôi muốn nghe nội dung bằng ngôn ngữ của máy để dễ hiểu hơn.</li>
+                        <li>Là người dùng, tôi muốn dừng audio bất kỳ lúc nào nếu không muốn nghe tiếp.</li>
+                        <li>Là người dùng, tôi muốn mở khóa gói đầy đủ để xem và nghe toàn bộ quán ăn.</li>
+                    </ul>
+                    <h3>11.2. Dành cho quản trị viên</h3>
+                    <ul>
+                        <li>Là quản trị viên, tôi muốn thêm, sửa, xóa điểm đến để dữ liệu luôn mới.</li>
+                        <li>Là quản trị viên, tôi muốn quản lý ảnh quán ăn để tăng tính trực quan.</li>
+                        <li>Là quản trị viên, tôi muốn xem thống kê lượt nghe và thời lượng trung bình theo quán.</li>
+                        <li>Là quản trị viên, tôi muốn xem bản đồ nhiệt để biết khu vực người dùng tương tác nhiều.</li>
+                        <li>Là quản trị viên, tôi muốn xem active visitors realtime để theo dõi hoạt động tại hiện trường.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="12-danh-sach-chuc-nang-chi-tiet">
+                    <h2>12. Danh sách chức năng chi tiết</h2>
+                </section>
+                <section class="doc-section" id="12-1-phan-he-mobile-app">
+                    <h2>12.1. Phân hệ Mobile App</h2>
+                    <h3>F1. Khởi tạo ứng dụng</h3>
+                    <ul>
+                        <li>Ứng dụng mở vào <code>AppShell</code> và hiển thị <code>MapPage</code>.</li>
+                        <li>Hệ thống kiểm tra quyền vị trí khi người dùng vào màn hình chính.</li>
+                        <li>Nếu chưa có quyền, ứng dụng yêu cầu cấp quyền.</li>
+                        <li>Nếu người dùng từ chối, ứng dụng thông báo rằng bản đồ không thể hoạt động đầy đủ.</li>
+                    </ul>
+                    <h3>F2. Xem vị trí hiện tại và các quán trên bản đồ</h3>
+                    <ul>
+                        <li>Bản đồ phải hiển thị vị trí hiện tại của người dùng.</li>
+                        <li>Ứng dụng phải hiển thị pin của các quán ăn lấy từ dữ liệu đã đồng bộ.</li>
+                        <li>Hệ thống phải di chuyển camera bản đồ đến vùng trung tâm phù hợp khi vào màn hình.</li>
+                        <li>Nếu có lỗi tạm thời ở GPS, bản đồ vẫn hiển thị danh sách pin đã có.</li>
+                    </ul>
+                    <h3>F3. Xem danh sách quán ăn</h3>
+                    <ul>
+                        <li>Ứng dụng hiển thị danh sách quán ở bottom sheet.</li>
+                        <li>Danh sách gồm tên quán, ảnh và khoảng cách đến người dùng.</li>
+                        <li>Nếu lấy được vị trí hiện tại, danh sách phải được sắp theo khoảng cách gần nhất.</li>
+                        <li>Nếu không lấy được vị trí, danh sách vẫn hiển thị theo dữ liệu hiện có.</li>
+                    </ul>
+                    <h3>F4. Xem chi tiết quán</h3>
+                    <ul>
+                        <li>Khi chọn một quán, người dùng vào trang chi tiết.</li>
+                        <li>Trang chi tiết hiển thị thông tin quán và các hành động chính.</li>
+                        <li>Tại trang chi tiết, người dùng có thể phát audio thủ công hoặc mở chỉ đường.</li>
+                    </ul>
+                    <h3>F5. Chỉ đường đến quán</h3>
+                    <ul>
+                        <li>Hệ thống tạo đối tượng <code>Location</code> từ tọa độ quán.</li>
+                        <li>Hệ thống gọi ứng dụng bản đồ mặc định của thiết bị.</li>
+                        <li>Nếu mở thành công, người dùng nhìn thấy tuyến đường.</li>
+                        <li>Nếu mở thất bại, ứng dụng hiển thị thông báo lỗi thân thiện.</li>
+                    </ul>
+                    <h3>F6. Thuyết minh tự động theo geofence</h3>
+                    <ul>
+                        <li>Ứng dụng quét GPS định kỳ.</li>
+                        <li>Nếu người dùng đi vào vùng hợp lệ của một hoặc nhiều POI, hệ thống chọn POI mục tiêu.</li>
+                        <li>Luật chọn POI mục tiêu:</li>
+                        <li>Quán phải nằm trong <code>GeofenceRadius</code>.</li>
+                        <li>Nếu nhiều quán hợp lệ, ưu tiên <code>Priority</code> nhỏ hơn.</li>
+                        <li>Nếu trùng <code>Priority</code>, chọn quán gần nhất.</li>
+                        <li>Khi một POI được chọn, ứng dụng phát audio tự động.</li>
+                        <li>Hệ thống áp dụng cooldown để tránh lặp lại quá dày.</li>
+                    </ul>
+                    <h3>F7. Thuyết minh thủ công</h3>
+                    <ul>
+                        <li>Trong trang chi tiết, người dùng có thể bấm nút phát audio.</li>
+                        <li>Hệ thống giải quyết nội dung theo ngôn ngữ hiện tại và phát lại qua TTS.</li>
+                        <li>Người dùng có thể dừng thủ công trong khi phát.</li>
+                    </ul>
+                    <h3>F8. Dịch nội dung</h3>
+                    <ul>
+                        <li>Nếu ngôn ngữ đích là tiếng Việt, hệ thống dùng trực tiếp <code>Description_VN</code>.</li>
+                        <li>Nếu ngôn ngữ đích khác tiếng Việt, hệ thống kiểm tra cache local trước.</li>
+                        <li>Nếu local cache không có, ứng dụng gọi API dịch dùng chung.</li>
+                        <li>Sau khi dịch thành công, bản dịch phải được lưu vào local cache để tái sử dụng.</li>
+                        <li>Nếu dịch thất bại, hệ thống trả lỗi và không phát audio.</li>
+                    </ul>
+                    <h3>F9. Phát audio bằng TTS</h3>
+                    <ul>
+                        <li>Hệ thống dùng TTS mặc định của hệ điều hành.</li>
+                        <li>Hệ thống phải chọn locale phù hợp với mã ngôn ngữ yêu cầu.</li>
+                        <li>Khi bắt đầu một audio mới, hệ thống phải dừng audio cũ nếu đang phát.</li>
+                        <li>Nếu người dùng bấm dừng, audio phải hủy bằng cancellation token.</li>
+                    </ul>
+                    <h3>F10. Analytics</h3>
+                    <ul>
+                        <li>Sau một phiên nghe hoàn tất hoặc bị dừng ở luồng tự động, ứng dụng gửi <code>ListeningLog</code> lên API.</li>
+                        <li>Dữ liệu gửi gồm <code>PoiId</code>, <code>AnonymousSessionId</code>, <code>DurationSeconds</code>, <code>Latitude</code>, <code>Longitude</code>.</li>
+                    </ul>
+                    <h3>F11. Monitoring heartbeat</h3>
+                    <ul>
+                        <li>Ứng dụng phải gửi heartbeat định kỳ để server biết tình trạng hoạt động hiện tại.</li>
+                        <li>Heartbeat gồm vị trí hiện tại, POI gần nhất, trạng thái nghe, sự kiện gần nhất và nền tảng thiết bị.</li>
+                        <li>Heartbeat được dùng cho dashboard active visitors phía admin.</li>
+                    </ul>
+                    <h3>F12. Mua gói hoàn chỉnh / mở khóa premium</h3>
+                    <ul>
+                        <li>Khi người dùng chọn mua gói đầy đủ, ứng dụng hiển thị hộp thoại xác nhận.</li>
+                        <li>Nếu thành công, hệ thống lưu cờ premium vào <code>Preferences</code>.</li>
+                        <li>Sau khi mở khóa, ứng dụng tải lại dữ liệu và hiển thị đầy đủ quán ăn.</li>
+                        <li>Ở phạm vi đồ án hiện tại, bước thanh toán là mô phỏng.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="12-2-phan-he-web-api">
+                    <h2>12.2. Phân hệ Web API</h2>
+                    <h3>F13. Cung cấp danh sách POI</h3>
+                    <ul>
+                        <li>Endpoint trả toàn bộ danh sách POI.</li>
+                        <li>Dữ liệu trả về gồm tên quán, ảnh, mô tả, tọa độ, bán kính geofence và priority.</li>
+                        <li>API phải trả kèm <code>ImageUrl</code> đầy đủ để mobile tải ảnh.</li>
+                    </ul>
+                    <h3>F14. Ghi nhận listening log</h3>
+                    <ul>
+                        <li>API nhận log analytics từ mobile.</li>
+                        <li>Server gán thời gian nhận thực tế vào <code>ListenAt</code>.</li>
+                        <li>Nếu dữ liệu không hợp lệ, trả lỗi phù hợp.</li>
+                    </ul>
+                    <h3>F15. Ghi nhận visitor activity heartbeat</h3>
+                    <ul>
+                        <li>API nhận heartbeat từ mobile.</li>
+                        <li>Nếu session chưa tồn tại, tạo mới.</li>
+                        <li>Nếu session đã tồn tại, cập nhật bản ghi hiện tại.</li>
+                        <li>API phải đảm bảo bảng <code>VisitorActivity</code> tồn tại trước khi ghi.</li>
+                    </ul>
+                    <h3>F16. Dịch nội dung</h3>
+                    <ul>
+                        <li>API nhận yêu cầu dịch gồm <code>PoiId</code>, <code>SourceText</code>, <code>TargetLanguageCode</code>.</li>
+                        <li>Nếu ngôn ngữ là <code>vi</code>, API trả ngay nội dung gốc.</li>
+                        <li>API phải ưu tiên memory cache rồi đến DB cache.</li>
+                        <li>Nếu chưa có cache, API gọi dịch vụ Gemini.</li>
+                        <li>Sau khi dịch thành công, API lưu translation cache dùng chung để các thiết bị khác dùng lại.</li>
+                    </ul>
+                    <h3>F17. Health check</h3>
+                    <ul>
+                        <li>API phải có endpoint health để kiểm tra khả năng kết nối DB và trạng thái cơ bản của dịch vụ.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="12-3-phan-he-web-admin">
+                    <h2>12.3. Phân hệ Web Admin</h2>
+                    <h3>F18. Quản lý điểm đến</h3>
+                    <ul>
+                        <li>Quản trị viên xem danh sách POI.</li>
+                        <li>Có thể thêm mới POI với thông tin và ảnh.</li>
+                        <li>Có thể sửa thông tin, thay ảnh, giữ hoặc cập nhật priority và bán kính geofence.</li>
+                        <li>Có thể xóa POI.</li>
+                        <li>Khi thay ảnh, ảnh cũ không phải placeholder phải được xóa vật lý.</li>
+                        <li>Khi xóa POI, ảnh liên quan cũng phải được dọn dẹp.</li>
+                    </ul>
+                    <h3>F19. Xem thống kê tổng hợp</h3>
+                    <ul>
+                        <li>Dashboard hiển thị tổng lượt nghe và thời lượng trung bình theo quán.</li>
+                        <li>Dashboard có bảng thống kê top quán được nghe nhiều.</li>
+                        <li>Dữ liệu lấy từ <code>ListeningLog</code> kết hợp với <code>Poi</code>.</li>
+                    </ul>
+                    <h3>F20. Xem bản đồ nhiệt</h3>
+                    <ul>
+                        <li>Dashboard phải hiển thị heatmap từ các bản ghi <code>ListeningLog</code> có tọa độ hợp lệ.</li>
+                        <li>Heatmap giúp minh họa vùng người dùng có tương tác nghe nhiều.</li>
+                    </ul>
+                    <h3>F21. Xem active visitors realtime</h3>
+                    <ul>
+                        <li>Dashboard phải hiển thị số người dùng đang hoạt động gần đây.</li>
+                        <li>Danh sách active visitor gồm session rút gọn, trạng thái, POI gần nhất, khoảng cách, POI đang nghe và thời gian thấy gần nhất.</li>
+                        <li>Dashboard tự refresh theo chu kỳ ngắn để gần realtime.</li>
+                    </ul>
+                    <h3>F22. Làm sạch active sessions</h3>
+                    <ul>
+                        <li>Quản trị viên có thể xóa toàn bộ <code>VisitorActivity</code> để reset dữ liệu active hiển thị.</li>
+                    </ul>
+                    <h3>F23. Theo dõi hệ thống</h3>
+                    <ul>
+                        <li>Web Admin phải có health endpoint để kiểm tra DB và thư mục ảnh.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="12-4-muc-o-uu-tien-chuc-nang">
+                    <h2>12.4. Mức độ ưu tiên chức năng</h2>
+                    <h3>Must Have</h3>
+                    <ul>
+                        <li>CRUD POI trên Web Admin.</li>
+                        <li>Mobile hiển thị bản đồ, vị trí hiện tại và danh sách quán.</li>
+                        <li>Nghe thuyết minh tự động theo geofence.</li>
+                        <li>Nghe thuyết minh thủ công ở trang chi tiết.</li>
+                        <li>Dịch nội dung và phát audio bằng TTS.</li>
+                        <li>Ghi nhận analytics và hiển thị dashboard thống kê cơ bản.</li>
+                    </ul>
+                    <h3>Should Have</h3>
+                    <ul>
+                        <li>Heatmap vị trí nghe trên dashboard.</li>
+                        <li>Active visitors realtime dựa trên heartbeat.</li>
+                        <li>Mở khóa premium để tải dữ liệu đầy đủ.</li>
+                        <li>Xử lý cache translation hai tầng local và server.</li>
+                    </ul>
+                    <h3>Could Have</h3>
+                    <ul>
+                        <li>Prefetch trước nội dung thuyết minh cho một số quán thường dùng.</li>
+                        <li>Nút làm sạch active sessions cho dashboard monitoring.</li>
+                        <li>Health endpoint riêng cho từng phân hệ để phục vụ vận hành và demo.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="13-quy-tac-nghiep-vu-quan-trong">
+                    <h2>13. Quy tắc nghiệp vụ quan trọng</h2>
+                    <h3>13.1. Quy tắc dữ liệu POI</h3>
+                    <ul>
+                        <li><code>Id</code> của POI là duy nhất.</li>
+                        <li><code>Priority</code> dùng để quyết định quán nào được phát trước khi nhiều quán cùng hợp lệ.</li>
+                        <li><code>GeofenceRadius</code> là tham số xác định vùng kích hoạt tự động.</li>
+                    </ul>
+                    <h3>13.2. Quy tắc chọn quán khi nghe tự động</h3>
+                    <ul>
+                        <li>Chỉ xét các POI mà khoảng cách đến người dùng nhỏ hơn hoặc bằng <code>GeofenceRadius</code>.</li>
+                        <li>Trong số các POI hợp lệ, chọn <code>Priority</code> nhỏ nhất.</li>
+                        <li>Nếu có nhiều POI cùng priority, chọn quán gần nhất.</li>
+                        <li>Một quán đã phát gần đây không được phát lại trước khi qua cooldown.</li>
+                    </ul>
+                    <h3>13.3. Quy tắc dịch</h3>
+                    <ul>
+                        <li>Ngôn ngữ đích được chuẩn hóa về mã hai ký tự.</li>
+                        <li>Tiếng Việt không cần gọi dịch.</li>
+                        <li>Luôn kiểm tra cache trước khi gọi dịch vụ bên ngoài.</li>
+                    </ul>
+                    <h3>13.4. Quy tắc monitoring</h3>
+                    <ul>
+                        <li><code>VisitorActivity</code> là bảng snapshot trạng thái hiện tại theo <code>AnonymousSessionId</code>, không phải bảng log lịch sử.</li>
+                        <li>Mỗi session chỉ có một bản ghi được cập nhật liên tục.</li>
+                    </ul>
+                    <h3>13.5. Quy tắc premium</h3>
+                    <ul>
+                        <li>Khi chưa premium, ứng dụng có thể dùng dữ liệu local hoặc seed.</li>
+                        <li>Khi đã premium, ứng dụng ưu tiên lấy danh sách quán đầy đủ từ API.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="14-mo-hinh-du-lieu-cot-loi">
+                    <h2>14. Mô hình dữ liệu cốt lõi</h2>
+                    <h3>14.1. POI</h3>
+                    <p>Thông tin điểm đến ẩm thực:</p>
+                    <ul>
+                        <li><code>Id</code></li>
+                        <li><code>Name</code></li>
+                        <li><code>ImageName</code></li>
+                        <li><code>Latitude</code></li>
+                        <li><code>Longitude</code></li>
+                        <li><code>Description_VN</code></li>
+                        <li><code>GeofenceRadius</code></li>
+                        <li><code>Priority</code></li>
+                    </ul>
+                    <h3>14.2. TranslationCache</h3>
+                    <p>Thông tin bản dịch được cache:</p>
+                    <ul>
+                        <li><code>PoiId</code></li>
+                        <li><code>LanguageCode</code></li>
+                        <li><code>TranslatedText</code></li>
+                        <li><code>CreatedAt</code></li>
+                    </ul>
+                    <h3>14.3. ListeningLog</h3>
+                    <p>Thông tin phiên nghe:</p>
+                    <ul>
+                        <li><code>PoiId</code></li>
+                        <li><code>AnonymousSessionId</code></li>
+                        <li><code>DurationSeconds</code></li>
+                        <li><code>Latitude</code></li>
+                        <li><code>Longitude</code></li>
+                        <li><code>ListenAt</code></li>
+                    </ul>
+                    <h3>14.4. VisitorActivity</h3>
+                    <p>Snapshot hoạt động hiện tại của người dùng:</p>
+                    <ul>
+                        <li><code>AnonymousSessionId</code></li>
+                        <li><code>Latitude</code></li>
+                        <li><code>Longitude</code></li>
+                        <li><code>NearestPoiId</code></li>
+                        <li><code>DistanceToNearestPoiMeters</code></li>
+                        <li><code>Status</code></li>
+                        <li><code>CurrentListeningPoiId</code></li>
+                        <li><code>LastEvent</code></li>
+                        <li><code>Platform</code></li>
+                        <li><code>LastSeenAt</code></li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="15-endpoint-chinh">
+                    <h2>15. Endpoint chính</h2>
+                    <h3>15.1. API cho mobile</h3>
+                    <ul>
+                        <li><code>GET /api/pois</code></li>
+                        <li><code>POST /api/listeninglogs</code></li>
+                        <li><code>POST /api/translations/resolve</code></li>
+                        <li><code>POST /api/visitoractivity/heartbeat</code></li>
+                        <li><code>GET /health</code></li>
+                    </ul>
+                    <h3>15.2. Endpoint cho Web Admin</h3>
+                    <ul>
+                        <li><code>GET /health</code></li>
+                        <li><code>GET /Analytics</code></li>
+                        <li><code>GET /Analytics/Snapshot</code></li>
+                        <li><code>POST /Analytics/ClearActiveVisitors</code></li>
+                        <li>Các route CRUD POI của MVC Admin</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="16-yeu-cau-phi-chuc-nang">
+                    <h2>16. Yêu cầu phi chức năng</h2>
+                    <h3>16.1. Hiệu năng</h3>
+                    <ul>
+                        <li>Màn hình bản đồ phải phản hồi đủ nhanh cho demo thực địa.</li>
+                        <li>Quá trình chọn POI và kích hoạt thuyết minh phải có độ trễ thấp.</li>
+                        <li>Dashboard analytics phải tải được trong thời gian hợp lý với dữ liệu đồ án.</li>
+                    </ul>
+                    <h3>16.2. Khả dụng</h3>
+                    <ul>
+                        <li>Ứng dụng phải tiếp tục hoạt động với dữ liệu local khi mất mạng tạm thời.</li>
+                        <li>Nếu API dịch lỗi, hệ thống không được làm sập toàn bộ luồng sử dụng.</li>
+                        <li>Nếu GPS lỗi tạm thời, app không được crash.</li>
+                    </ul>
+                    <h3>16.3. Bảo trì</h3>
+                    <ul>
+                        <li>Kiến trúc chia thành 3 project rõ ràng để dễ bảo trì và đánh giá đồ án.</li>
+                        <li>Logic dịch, geofence, analytics, premium và monitoring phải tách thành service riêng.</li>
+                    </ul>
+                    <h3>16.4. Bảo mật và riêng tư</h3>
+                    <ul>
+                        <li>Không lưu thông tin định danh cá nhân trực tiếp của người dùng cuối.</li>
+                        <li>Chỉ dùng <code>AnonymousSessionId</code> cho analytics và monitoring.</li>
+                        <li>Dữ liệu vị trí chỉ phục vụ mục đích trải nghiệm và dashboard nội bộ của đồ án.</li>
+                    </ul>
+                    <h3>16.5. Tương thích</h3>
+                    <ul>
+                        <li>Ứng dụng ưu tiên Android vì đây là nền tảng demo chính.</li>
+                        <li>TTS và bản đồ phụ thuộc khả năng hỗ trợ của thiết bị.</li>
+                    </ul>
+                    <h3>16.6. Môi trường triển khai và demo</h3>
+                    <ul>
+                        <li>Mobile App được build dưới dạng APK để cài trên thiết bị Android phục vụ demo thực địa.</li>
+                        <li>Web API và Web Admin được triển khai trên môi trường hosting trực tuyến để hội đồng có thể kiểm tra nhanh.</li>
+                        <li>SQL Server dùng làm kho dữ liệu trung tâm cho admin, analytics, monitoring và translation cache dùng chung.</li>
+                        <li>SQLite local trên mobile dùng để cache POI và translation nhằm giảm phụ thuộc mạng.</li>
+                        <li>Thiết bị demo cần có GPS, kết nối Internet và text-to-speech engine khả dụng.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="17-trang-thai-san-pham-va-gioi-han-hien-tai">
+                    <h2>17. Trạng thái sản phẩm và giới hạn hiện tại</h2>
+                    <h3>17.1. Điểm mạnh hiện có</h3>
+                    <ul>
+                        <li>Đã có luồng đầy đủ từ admin dữ liệu đến mobile sử dụng thực tế.</li>
+                        <li>Có geofence, auto narration, manual narration, dịch, TTS, analytics và monitoring.</li>
+                        <li>Có cache local và shared translation cache.</li>
+                        <li>Có dashboard heatmap và active visitors.</li>
+                    </ul>
+                    <h3>17.2. Hạn chế hiện tại</h3>
+                    <ul>
+                        <li>Mua gói hoàn chỉnh mới là mô phỏng, chưa kết nối thanh toán thật.</li>
+                        <li>Chưa có tài khoản admin phân quyền nhiều cấp.</li>
+                        <li>Chưa có lịch sử đầy đủ cho monitoring, mới là snapshot trạng thái hiện tại.</li>
+                        <li>Analytics chủ yếu là dashboard cơ bản, chưa có nhiều chiều phân tích sâu.</li>
+                        <li>Translation phụ thuộc cấu hình API key của Gemini.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="18-tieu-chi-nghiem-thu">
+                    <h2>18. Tiêu chí nghiệm thu</h2>
+                    <h3>18.1. Nghiệm thu chức năng</h3>
+                    <ul>
+                        <li>Admin thêm mới một POI và POI đó được lưu thành công.</li>
+                        <li>Mobile gọi API và hiển thị được toàn bộ danh sách quán hợp lệ.</li>
+                        <li>Mobile hiển thị bản đồ cùng vị trí hiện tại của user và pin các quán.</li>
+                        <li>Mobile hiển thị danh sách quán cùng khoảng cách gần đúng đến user.</li>
+                        <li>Khi vào vùng geofence của một quán, app tự động phát thuyết minh.</li>
+                        <li>Người dùng có thể phát và dừng audio thủ công trong trang chi tiết.</li>
+                        <li>Nội dung được dịch sang ngôn ngữ khác khi thiết bị không dùng tiếng Việt.</li>
+                        <li>Analytics ghi nhận được log nghe.</li>
+                        <li>Admin xem được thống kê tổng hợp, heatmap và active visitors.</li>
+                        <li>Chức năng mở khóa premium làm ứng dụng tải lại dữ liệu và hiển thị đầy đủ nội dung.</li>
+                    </ul>
+                    <h3>18.2. Nghiệm thu phi chức năng</h3>
+                    <ul>
+                        <li>Ứng dụng không crash khi mất GPS tạm thời.</li>
+                        <li>Ứng dụng không crash khi API dịch hoặc API analytics lỗi.</li>
+                        <li>Dashboard admin vẫn mở được kể cả khi bảng <code>VisitorActivity</code> tạm thời chưa có dữ liệu.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="19-kich-ban-kiem-thu-mau">
+                    <h2>19. Kịch bản kiểm thử mẫu</h2>
+                    <ul>
+                        <li><code>TC-01</code>: Mở app lần đầu, từ chối GPS, hệ thống hiển thị trạng thái phù hợp.</li>
+                        <li><code>TC-02</code>: Mở app khi có mạng và premium, dữ liệu quán được tải từ API.</li>
+                        <li><code>TC-03</code>: Mở app khi mất mạng nhưng đã có cache local, danh sách quán vẫn hiển thị.</li>
+                        <li><code>TC-04</code>: Người dùng đứng trong vùng quán A, app tự phát thuyết minh quán A.</li>
+                        <li><code>TC-05</code>: Hai quán cùng trong vùng, app chọn quán có <code>Priority</code> thấp hơn.</li>
+                        <li><code>TC-06</code>: Thiết bị dùng ngôn ngữ không phải tiếng Việt, hệ thống trả về bản dịch hợp lệ.</li>
+                        <li><code>TC-07</code>: Người dùng bấm stop khi audio đang phát, audio dừng ngay.</li>
+                        <li><code>TC-08</code>: Sau khi phát xong, hệ thống gửi analytics lên server.</li>
+                        <li><code>TC-09</code>: Dashboard Analytics hiển thị số active users &gt; 0 khi app đang gửi heartbeat.</li>
+                        <li><code>TC-10</code>: Admin thay ảnh quán, ảnh cũ được xóa vật lý và ảnh mới hiển thị đúng.</li>
+                        <li><code>TC-11</code>: Admin bấm clear active sessions, danh sách active visitors trở về rỗng.</li>
+                        <li><code>TC-12</code>: Người dùng mở khóa premium, app reload và hiện đủ dữ liệu.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="20-rui-ro-va-phuong-an-giam-thieu">
+                    <h2>20. Rủi ro và phương án giảm thiểu</h2>
+                    <h3>20.1. Rủi ro GPS không ổn định</h3>
+                    <ul>
+                        <li>Ảnh hưởng: phát sai quán, chậm phát hoặc không phát.</li>
+                        <li>Giảm thiểu: dùng geofence radius hợp lý, ưu tiên theo priority, có fallback vị trí gần nhất, có thao tác nghe thủ công.</li>
+                    </ul>
+                    <h3>20.2. Rủi ro mạng yếu</h3>
+                    <ul>
+                        <li>Ảnh hưởng: không tải được POI mới, không gửi được analytics, không dịch được.</li>
+                        <li>Giảm thiểu: cache local, offline-first, cache translation local và server, xử lý lỗi mềm.</li>
+                    </ul>
+                    <h3>20.3. Rủi ro dịch vụ dịch lỗi hoặc thiếu API key</h3>
+                    <ul>
+                        <li>Ảnh hưởng: không có bản dịch cho người dùng quốc tế.</li>
+                        <li>Giảm thiểu: dùng tiếng Việt mặc định khi phù hợp, cache bản dịch đã dịch trước đó, báo lỗi thân thiện.</li>
+                    </ul>
+                    <h3>20.4. Rủi ro monitoring gây hiểu nhầm</h3>
+                    <ul>
+                        <li>Ảnh hưởng: người dùng tưởng heartbeat không ghi vì không thấy nhiều dòng mới.</li>
+                        <li>Giảm thiểu: nêu rõ <code>VisitorActivity</code> là snapshot theo session, không phải log lịch sử.</li>
+                    </ul>
+                    <h3>20.5. Rủi ro demo thực địa</h3>
+                    <ul>
+                        <li>Ảnh hưởng: điều kiện ngoài trời, mạng di động, tiếng ồn làm giảm chất lượng demo.</li>
+                        <li>Giảm thiểu: chuẩn bị dữ liệu local sẵn, kiểm tra quyền GPS trước, có kịch bản phát thủ công dự phòng.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="21-huong-phat-trien-sau-o-an">
+                    <h2>21. Hướng phát triển sau đồ án</h2>
+                    <ul>
+                        <li>Kết nối cổng thanh toán thật cho gói premium.</li>
+                        <li>Mở rộng cho nhiều tuyến phố hoặc nhiều khu du lịch.</li>
+                        <li>Bổ sung nhiều dashboard phân tích hơn theo thời gian, khu vực, ngôn ngữ và loại tương tác.</li>
+                        <li>Hỗ trợ quản trị nhiều vai trò người dùng.</li>
+                        <li>Thêm recommendation và lộ trình tham quan theo sở thích.</li>
+                        <li>Tối ưu giao diện cho khách quốc tế và accessibility.</li>
+                    </ul>
+                </section>
+                <section class="doc-section" id="22-ket-luan">
+                    <h2>22. Kết luận</h2>
+                    <p>VinhKhanhTourGuide không chỉ là một ứng dụng bản đồ đơn giản mà là một hệ thống fullstack có vòng đời dữ liệu hoàn chỉnh: quản trị nội dung, phân phối dữ liệu cho mobile, xử lý dịch và audio theo vị trí, ghi nhận analytics, theo dõi trạng thái hoạt động và hỗ trợ mở rộng sản phẩm trong tương lai. Đây là một phạm vi đồ án có tính ứng dụng thực tế, có chiều sâu kỹ thuật và đủ rõ để triển khai, demo và nghiệm thu.</p>
+                </section>
+
+                <section class="doc-section" id="phu-luc-so-do">
+                    <h2>23. Phụ lục sơ đồ</h2>
+                    <p>
+                        Phần này tập hợp đầy đủ các sơ đồ <code>Use Case</code>, <code>Activity</code> và <code>Sequence</code> đã vẽ sẵn trong thư mục <code>PRDFinal</code>.
+                        Bấm vào ảnh bất kỳ để phóng to. Nếu cần chỉnh sửa, mở trực tiếp các tệp <code>.drawio</code> tương ứng.
+                    </p>
+
+                    <!-- ── USE CASE ── -->
+                    <h3 style="margin-top:28px; color:#0f766e; font-size:1.15rem; border-bottom:2px solid #d7e3e7; padding-bottom:8px;">
+                        🎯 Use Case Diagram
+                    </h3>
+                    <div class="diagram-grid" style="grid-template-columns: 1fr;">
+                        <figure class="diagram-card">
+                            <img src="UseCaseDiagram.drawio.png" alt="Use Case Diagram" loading="lazy" data-zoom="Use Case Diagram" />
+                            <figcaption>Use Case Diagram</figcaption>
+                            <p>Tổng hợp tất cả các ca sử dụng của hệ thống VinhKhanhTourGuide.</p>
+                        </figure>
+                    </div>
+
+                    <!-- ── ACTIVITY ── -->
+                    <h3 style="margin-top:32px; color:#0f766e; font-size:1.15rem; border-bottom:2px solid #d7e3e7; padding-bottom:8px;">
+                        ⚙️ Activity Diagrams
+                    </h3>
+                    <div class="diagram-grid">
+                        <figure class="diagram-card">
+                            <img src="Activity/Dịch và chuyển text thành audio.png" alt="Activity – Dịch và chuyển text thành audio" loading="lazy" data-zoom="Activity – Dịch và chuyển text thành audio" />
+                            <figcaption>Dịch và chuyển text thành audio</figcaption>
+                            <p>Luồng hoạt động dịch nội dung và tổng hợp giọng nói TTS.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Activity/Kích hoạt ứng dụng.png" alt="Activity – Kích hoạt ứng dụng" loading="lazy" data-zoom="Activity – Kích hoạt ứng dụng" />
+                            <figcaption>Kích hoạt ứng dụng</figcaption>
+                            <p>Luồng khởi động app, kiểm tra quyền GPS và tải dữ liệu ban đầu.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Activity/MonitoringAct.png" alt="Activity – Monitoring" loading="lazy" data-zoom="Activity – Monitoring" />
+                            <figcaption>Monitoring (Activity)</figcaption>
+                            <p>Luồng hoạt động theo dõi trạng thái hệ thống và heartbeat.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Activity/Mua gói hoàn chỉnh.png" alt="Activity – Mua gói hoàn chỉnh" loading="lazy" data-zoom="Activity – Mua gói hoàn chỉnh" />
+                            <figcaption>Mua gói hoàn chỉnh</figcaption>
+                            <p>Luồng mua và kích hoạt gói premium cho người dùng.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Activity/Nghe thuyết minh tự động hoặc thủ công.png" alt="Activity – Nghe thuyết minh tự động hoặc thủ công" loading="lazy" data-zoom="Activity – Nghe thuyết minh tự động hoặc thủ công" />
+                            <figcaption>Nghe thuyết minh tự động hoặc thủ công</figcaption>
+                            <p>Luồng phát audio tự động qua geofence hoặc thủ công theo yêu cầu.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Activity/Quản lý điểm đến.png" alt="Activity – Quản lý điểm đến" loading="lazy" data-zoom="Activity – Quản lý điểm đến" />
+                            <figcaption>Quản lý điểm đến</figcaption>
+                            <p>Luồng quản lý POI: thêm, sửa, xóa quán từ phía admin.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Activity/Xem bản đồ nhiệt.png" alt="Activity – Xem bản đồ nhiệt" loading="lazy" data-zoom="Activity – Xem bản đồ nhiệt" />
+                            <figcaption>Xem bản đồ nhiệt</figcaption>
+                            <p>Luồng admin xem heatmap mật độ người dùng theo khu vực.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Activity/Xem danh sách quán.png" alt="Activity – Xem danh sách quán" loading="lazy" data-zoom="Activity – Xem danh sách quán" />
+                            <figcaption>Xem danh sách quán</figcaption>
+                            <p>Luồng tải và hiển thị danh sách quán kèm khoảng cách trên mobile.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Activity/Xem hướng dẫn chỉ đường đến quán.png" alt="Activity – Xem hướng dẫn chỉ đường đến quán" loading="lazy" data-zoom="Activity – Xem hướng dẫn chỉ đường đến quán" />
+                            <figcaption>Xem hướng dẫn chỉ đường đến quán</figcaption>
+                            <p>Luồng mở chỉ đường từ vị trí hiện tại đến quán được chọn.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Activity/Xem thống kê dữ liệu.png" alt="Activity – Xem thống kê dữ liệu" loading="lazy" data-zoom="Activity – Xem thống kê dữ liệu" />
+                            <figcaption>Xem thống kê dữ liệu</figcaption>
+                            <p>Luồng admin truy cập dashboard analytics tổng hợp.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Activity/Xem vị trí hiện tại và các quán trên bản đồ.png" alt="Activity – Xem vị trí hiện tại và các quán trên bản đồ" loading="lazy" data-zoom="Activity – Xem vị trí hiện tại và các quán trên bản đồ" />
+                            <figcaption>Xem vị trí hiện tại và các quán trên bản đồ</figcaption>
+                            <p>Luồng hiển thị bản đồ với vị trí user và pin các POI lân cận.</p>
+                        </figure>
+                    </div>
+
+                    <!-- ── SEQUENCE ── -->
+                    <h3 style="margin-top:32px; color:#0f766e; font-size:1.15rem; border-bottom:2px solid #d7e3e7; padding-bottom:8px;">
+                        🔄 Sequence Diagrams
+                    </h3>
+                    <div class="diagram-grid">
+                        <figure class="diagram-card">
+                            <img src="Squence/Dich_text_audio.png" alt="Sequence – Dịch text thành audio" loading="lazy" data-zoom="Sequence – Dịch text thành audio" />
+                            <figcaption>Dịch text thành audio</figcaption>
+                            <p>Chuỗi tương tác dịch nội dung và tổng hợp audio TTS giữa các thành phần.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Squence/HD_denquan.png" alt="Sequence – Hướng dẫn đến quán" loading="lazy" data-zoom="Sequence – Hướng dẫn đến quán" />
+                            <figcaption>Hướng dẫn đến quán</figcaption>
+                            <p>Chuỗi tương tác khi người dùng yêu cầu chỉ đường đến điểm đến.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Squence/Kichhoat_muagoi.png" alt="Sequence – Kích hoạt / Mua gói" loading="lazy" data-zoom="Sequence – Kích hoạt / Mua gói" />
+                            <figcaption>Kích hoạt / Mua gói</figcaption>
+                            <p>Chuỗi tương tác từ khi người dùng bấm mua đến khi kích hoạt premium.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Squence/Monitoring.png" alt="Sequence – Monitoring" loading="lazy" data-zoom="Sequence – Monitoring" />
+                            <figcaption>Monitoring</figcaption>
+                            <p>Chuỗi gửi heartbeat và theo dõi trạng thái active visitor.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Squence/Nghe_TM.png" alt="Sequence – Nghe thuyết minh" loading="lazy" data-zoom="Sequence – Nghe thuyết minh" />
+                            <figcaption>Nghe thuyết minh</figcaption>
+                            <p>Chuỗi phát thuyết minh tự động hoặc thủ công từ mobile đến backend.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Squence/Quan_ly_POI.png" alt="Sequence – Quản lý POI" loading="lazy" data-zoom="Sequence – Quản lý POI" />
+                            <figcaption>Quản lý POI</figcaption>
+                            <p>Chuỗi thêm, sửa, xóa điểm đến từ web admin đến API và database.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Squence/Xem_danh_sach.png" alt="Sequence – Xem danh sách quán" loading="lazy" data-zoom="Sequence – Xem danh sách quán" />
+                            <figcaption>Xem danh sách quán</figcaption>
+                            <p>Chuỗi mobile gọi API lấy danh sách POI và hiển thị kết quả.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Squence/Xem_HeatMap.png" alt="Sequence – Xem HeatMap" loading="lazy" data-zoom="Sequence – Xem HeatMap" />
+                            <figcaption>Xem HeatMap</figcaption>
+                            <p>Chuỗi admin truy vấn dữ liệu và render heatmap trên dashboard.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Squence/Xem_thong_ke.png" alt="Sequence – Xem thống kê" loading="lazy" data-zoom="Sequence – Xem thống kê" />
+                            <figcaption>Xem thống kê</figcaption>
+                            <p>Chuỗi admin tải dữ liệu analytics tổng hợp từ API về dashboard.</p>
+                        </figure>
+                        <figure class="diagram-card">
+                            <img src="Squence/Xemvitri_quanan.png" alt="Sequence – Xem vị trí quán ăn" loading="lazy" data-zoom="Sequence – Xem vị trí quán ăn" />
+                            <figcaption>Xem vị trí quán ăn</figcaption>
+                            <p>Chuỗi mobile lấy GPS, gọi API và hiển thị các quán trên bản đồ.</p>
+                        </figure>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <div class="footer">
+            VinhKhanhTourGuide PRD • Web view tổng hợp • Nội dung lấy từ PRD Markdown và asset sơ đồ trong thư mục PRD
+        </div>
+    </div>
+
+    <div class="zoom-overlay" id="zoom-overlay" aria-hidden="true">
+        <img id="zoom-image" alt="Sơ đồ phóng to" />
+    </div>
+
+    <script>
+        const tocContainer = document.getElementById('toc-links');
+        const sectionTitles = [...document.querySelectorAll('.doc-section > h2')];
+        sectionTitles.forEach((heading) => {
+            const link = document.createElement('a');
+            link.href = `#${heading.parentElement.id}`;
+            link.textContent = heading.textContent;
+            tocContainer.appendChild(link);
+        });
+
+        const tocLinks = [...tocContainer.querySelectorAll('a')];
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                const id = entry.target.id;
+                const link = tocLinks.find((item) => item.getAttribute('href') === `#${id}`);
+                if (!link) return;
+                if (entry.isIntersecting) {
+                    tocLinks.forEach((item) => item.classList.remove('active'));
+                    link.classList.add('active');
+                }
+            });
+        }, { rootMargin: '-20% 0px -65% 0px', threshold: 0.1 });
+
+        document.querySelectorAll('.doc-section').forEach((section) => observer.observe(section));
+
+        const overlay = document.getElementById('zoom-overlay');
+        const overlayImage = document.getElementById('zoom-image');
+        document.querySelectorAll('[data-zoom]').forEach((img) => {
+            img.addEventListener('click', () => {
+                overlayImage.src = img.getAttribute('src');
+                overlayImage.alt = img.getAttribute('alt') || 'Sơ đồ phóng to';
+                overlay.classList.add('open');
+                overlay.setAttribute('aria-hidden', 'false');
+            });
+        });
+
+        overlay.addEventListener('click', () => {
+            overlay.classList.remove('open');
+            overlay.setAttribute('aria-hidden', 'true');
+            overlayImage.removeAttribute('src');
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                overlay.classList.remove('open');
+                overlay.setAttribute('aria-hidden', 'true');
+                overlayImage.removeAttribute('src');
+            }
+        });
+    </script>
+</body>
+</html>
