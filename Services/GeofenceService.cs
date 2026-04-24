@@ -68,16 +68,32 @@ namespace VinhKhanhTourGuide.Services
 
                 if (poisInRange.Count > 0)
                 {
-                    // Ưu tiên quán có Priority nhỏ, sau đó mới xét khoảng cách
-                    var targetPoi = poisInRange.OrderBy(p => p.poi.Priority).ThenBy(p => p.distance).First().poi;
+                    var now = DateTime.Now;
 
-                    // Kiểm tra Cooldown 5 phút
-                    if (_spokenPoisDict.TryGetValue(targetPoi.Id, out DateTime lastTime))
+                    // Sắp theo luật nghiệp vụ: priority thấp hơn được ưu tiên trước,
+                    // nếu bằng nhau thì chọn quán gần hơn.
+                    var orderedCandidates = poisInRange
+                        .OrderBy(p => p.poi.Priority)
+                        .ThenBy(p => p.distance);
+
+                    Poi? targetPoi = null;
+
+                    foreach (var candidate in orderedCandidates)
                     {
-                        if ((DateTime.Now - lastTime).TotalMinutes < _cooldownMinutes) return;
+                        // Nếu quán hiện tại đang cooldown thì bỏ qua, thử quán tiếp theo.
+                        if (_spokenPoisDict.TryGetValue(candidate.poi.Id, out DateTime lastTime) &&
+                            (now - lastTime).TotalMinutes < _cooldownMinutes)
+                        {
+                            continue;
+                        }
+
+                        targetPoi = candidate.poi;
+                        break;
                     }
 
-                    _spokenPoisDict[targetPoi.Id] = DateTime.Now;
+                    if (targetPoi == null) return;
+
+                    _spokenPoisDict[targetPoi.Id] = now;
 
                     // BẮN SỰ KIỆN GỌI MAP-PAGE XỬ LÝ
                     PoiDetected?.Invoke(this, (targetPoi, userLocation));
